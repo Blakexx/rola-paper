@@ -1,0 +1,178 @@
+% ============================================================
+% Routed Linear Attention (RoLA)
+% Generic, conference-agnostic preprint project.
+% Base style: arxiv.sty (kourgeorge/arxiv-style), committed locally.
+% To port to a venue: swap \documentclass + style, fix \caption/\ref
+% syntax if needed. Body content is standard LaTeX and ports without changes.
+% ============================================================
+\documentclass{article}
+
+% ------------------------------------------------------------
+% SUBMISSION MODE
+%   \reviewtrue  : anonymized (double-blind review)
+%   \reviewfalse : de-anonymized (arXiv preprint / camera-ready)
+% Flip the one line below to switch.
+% ------------------------------------------------------------
+\newif\ifreview
+\reviewtrue
+
+\usepackage{arxiv}
+
+% --- Encoding and fonts ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+
+% --- Math ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}   % Appendix A only; the body states no lemma.
+\theoremstyle{definition}
+\newtheorem{conjecture}{Conjecture}
+
+% --- Tables, graphics, color ---
+% Keep floats inside the section that defines them (Table 1 was drifting
+% from S2 past the full-page architecture figure into S3's running text).
+\usepackage[section]{placeins}
+\usepackage{array}      % >{\raggedright} column specs in the manifest table
+\usepackage{booktabs}
+\usepackage{multirow}   % Table: two uses of the feature map
+\usepackage{graphicx}   % \rotatebox in comparison tables
+\usepackage{float}      % [H] to pin tables/figures exactly where defined (no floating)
+\raggedbottom           % with pinned [H] floats, don't stretch glue to fill pages; keep spacing uniform
+\graphicspath{{../figures/}{figures/}}  % data figures (relative to generic/ build cwd)
+\usepackage{xcolor}     % \color in \TODO
+\usepackage{pgfplots}   % self-contained crossover plot (loads tikz)
+\pgfplotsset{compat=1.16}  % conservative: works across texlive versions
+\usetikzlibrary{positioning, arrows.meta, fit, backgrounds, calc}  % architecture diagram
+
+% --- References and links ---
+\usepackage{natbib}
+\usepackage{url}
+\usepackage{hyperref}
+% Color link text instead of drawing red/green border boxes around links.
+\definecolor{linkblue}{RGB}{0,71,171}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkblue,   % \ref, \eqref, section/table links
+  citecolor=linkblue,   % \citep, \citet
+  urlcolor=linkblue,    % \url
+  pdftitle={RoLA: Scaling Linear Attention's Recall with Sequence Length}
+}
+
+% --- Submission label ---
+% arxiv.sty hard-codes "A Preprint" in the page header and under the title.
+% That is wrong for an anonymized review build, so relabel it there and keep
+% the watermark + preprint label only for the de-anonymized build.
+\ifreview
+  \renewcommand{\headeright}{Under review}
+  \renewcommand{\undertitle}{Under review}
+\else
+  \usepackage{draftwatermark}
+  \SetWatermarkText{Preprint}
+  \SetWatermarkScale{1}
+  \SetWatermarkColor[gray]{0.92}
+\fi
+
+% ------------------------------------------------------------
+% Macros
+% ------------------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\softmax}{\mathrm{softmax}}
+\newcommand{\entmaxop}{\mathrm{entmax}}
+% --- Current (architecture rev .18) vocabulary. Every symbol is also defined at
+% --- first use in the prose; these are shorthands, not a substitute for that.
+\newcommand{\Nst}{N}            % value-state count = leaf count = prod_l b_l
+\newcommand{\Dlv}{D}            % routing depth (number of levels)
+\newcommand{\bl}{b_l}           % branch width at level l
+\newcommand{\Slv}{S}            % sum_l b_l : the addressing/cost sum
+\newcommand{\dv}{d_v}           % value width
+\newcommand{\dqk}{d_{qk}}       % retained ONLY for the linear-attention identity
+                                % (Sec. 3.5) and for describing prior work.
+% \long so TODO content can span multiple paragraphs; \color switch (not
+% \textcolor) tolerates paragraph breaks inside the group.
+\long\def\TODO#1{{\color{red}[TODO: #1]}}
+% \placeholder marks a slot awaiting a measurement that does not yet exist.
+% NEVER fill one with an invented number and NEVER carry one over from an
+% earlier architecture (see AUDIT.md Sec. 5.4): if it is not traceable to a
+% results file produced by the cell of Sec. 3, it stays a placeholder.
+\long\def\placeholder#1{{\color{blue}[PLACEHOLDER: #1]}}
+
+% ------------------------------------------------------------
+% Title and authors
+% ------------------------------------------------------------
+% Title per the user's choice (2026-08-03): benefit-stating per the audience
+% ruling — "Recall" is the scaled quantity and "with Sequence Length" is the
+% N = L thesis. The acronym still expands to Routed Linear Attention in the
+% abstract and introduction. Supersedes "RoLA: Value-Slot Routing Is Linear
+% Attention" (the claim-sentence form; the claim itself is Prop. 1's and stays),
+% earlier "Routed Linear Attention" alone, and "Codebook Routing over
+% Attending States".
+\title{RoLA: Scaling Linear Attention's Recall with Sequence Length}
+
+\ifreview
+  \author{Anonymous Author(s)}
+\else
+  \author{%
+    Blake Bottum\\
+    Independent Researcher\\
+    \texttt{blakebottum.research@gmail.com}%
+  }
+\fi
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ------------------------------------------------------------
+% Abstract
+% ------------------------------------------------------------
+\begin{abstract}
+Softmax attention stores a key and a value for every token, so its per-token compute and stored state both grow with $L$, the context length. Linear attention bounds both by folding the history into a fixed-size recurrent state, and gives up associative recall: every token writes into that state, and a query reads their superposition.
+
+That state is a single value slot every token writes into, which suggests many slots with tokens routed among them, and recent architectures build versions of this. Routing, wherever it appears, is a producer of query and key features, so each such design is the recurrence it already ran under a new feature map. Which recurrence to route is a choice, and we take linear attention, the class softmax attention itself belongs to. When its write coefficients depend on the input rather than the stored state, a routed memory is that class at feature dimension $\Nst$, its write routing the key features and its read routing the query.
+
+RoLA (Routed Linear Attention) is the general form this licenses: a factorized hierarchy of per-level entmax distributions, reaching $\prod_l \bl$ features from $\sum_l \bl$ router outputs. Its features decay by write weight received and not by elapsed time, and its kernel bills the tiles a token touches. That kernel addresses $\Nst = 65{,}536$ features, and it meets softmax attention's per-token arithmetic at $\Nst = L$, the size at which a comparison between the two is capacity-fair. \placeholder{Headline result, with its controls, on rental-class hardware under the ratified protocol.}
+\end{abstract}
+
+\keywords{linear attention \and recurrent memory \and sparse routing \and entmax \and associative recall \and efficient transformers}
+
+% ------------------------------------------------------------
+% Body
+% ------------------------------------------------------------
+\input{../sections/01_introduction}
+\input{../sections/02_background}
+\input{../sections/03_reduction}
+\input{../sections/04_rola}
+\input{../sections/05_capacity}
+\input{../sections/06_cost}
+\input{../sections/07_experiments}
+\input{../sections/08_limitations}
+\input{../sections/09_conclusion}
+
+% ------------------------------------------------------------
+% Acknowledgments (hidden under anonymized review)
+% ------------------------------------------------------------
+\ifreview\else
+  \section*{Acknowledgments}
+  The author thanks Weigao Sun for early feedback on the idea and for his
+  encouragement in pursuing it. Compute for this work was supported in part by
+  a credit grant from CloudRift (\url{https://cloudrift.ai}).
+\fi
+
+% ------------------------------------------------------------
+% References
+% ------------------------------------------------------------
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% ------------------------------------------------------------
+% Appendix
+% ------------------------------------------------------------
+\input{../sections/10_appendix}
+
+\end{document}

@@ -1,0 +1,167 @@
+% ============================================================
+% 6. Cost
+%
+% GOAL (PAPER_STRUCTURE.md): sparse-memory work is billed per tile touched,
+% support clustering rather than support size is the cost variable, and RoLA
+% meets attention's FLOP count at N = L.
+%
+% PROVENANCE RULING (2026-08-02, user). The paper prints only ANALYTIC
+% quantities (derived FLOP counts, structural counts, asymptotics) and
+% measurements with PUBLISHABLE provenance (rental-class hardware, ratified
+% protocol). Every constant below was taken on one consumer card with
+% single-launch counters, so NONE of it may be printed: the quanta table's work
+% column, the quanta statistics (0.97 / 0.606 / 39 %), the gather A/B
+% percentages, the timing ratio, the selection counts and the residuals are all
+% DEMOTED to \placeholder / \TODO in the rendered text. The block below is the
+% provenance record for the re-measurement, not a source to re-inline from.
+%
+% NUMBERS. Every constant is READ BACK from the committed cost model,
+% `rola/planner/schedule.py` in the standalone package (the file the planner
+% selects with), not from the earlier draft and not from memory:
+%   GATHER_CANDIDATE_FIXED_WORK   = 177.75    per candidate (owner, tile) pair
+%   GATHER_CANDIDATE_QUANTUM_WORK = 525.125   per ceil(BC/16) quantum
+%   READOUT_FOLD_KSTEP_WORK       = 1755.0    per k-step
+%   INTRA_GRAM_KSTEP_WORK         = 144.0     per k-step
+%   DECAY_KSTEP_WORK              = (1106.3 + 959.7) / 2 = 1033.0 per k-step
+% The gather is NOT the single ~2278 of the earlier draft: 2278.25 is what the
+% BC = 64 cell measures per tile, and the two-point solve over ceil(BC/16)
+% against the BC = 16 cell (702.88) splits it into 525.125 per quantum plus a
+% 177.75 per-tile intercept. Pricing it as one constant made compaction
+% unreachable at BC = 16. Provenance for the solve: rewrite.md Secs. 2.20, 2.33,
+% and the constant's own docstring block in schedule.py.
+%
+% Instrument, all constants: RTX 3080 Ti, `ncu --clock-control base`,
+% `smsp__inst_executed.sum`, ONE profiled launch per arm, flock-serialized;
+% cells from the frozen registry in `benchmarks/bench_consumer_new.py`.
+% Isolating cells: GATHER_* from topo-D2-w64x64-BC64 against topo-D2-w64x16-BC16
+% (unions saturate at both, so gathering changes no extent and only the dense
+% quantum differs); READOUT_FOLD from atscale-L2048, where extents do move;
+% INTRA_GRAM from wk1-D2-w64x64-BC64 against topo-D2-w64x64-BC64, which differ
+% only in the intra extent KI; DECAY from the BC = 64 / BC = 16 pair at both
+% compact arms, which differ only in the k-step count.
+%
+% atscale-L2048 config, read back from bench_consumer_new.py: widths (256, 256),
+% so N = 65536 at D = 2; B = 1, H = 8, d_v = 64, T = 2048, BC = 64, BT = 16;
+% order-1.5 entmax routing PRODUCED by a real RoLA layer (route_W scaled 8.0,
+% seed 0) with the plan chosen by the planner. Quanta stats (--mode gatherstats,
+% rewrite.md Sec. 2.20): mean K / BC = 0.97, readout k-steps 0.606 of 4, ~39 % of
+% candidate pairs gather K = 0. Compaction A/B at that cell: 1812.1 M -> 1035.0 M
+% instructions (-42.9 %) at decay = None and 2719.6 M -> 1092.6 M (-59.8 %) with
+% decay; paired interleaved timing 8.457 -> 6.383 ms (x0.753, IQR 0.094).
+% Dense toll, topo-D2-w64x64-BC64: 9.410 M -> 11.743 M (+24.8 %) and
+% 13.888 M -> 15.786 M (+13.7 %).
+%
+% RESIDUALS (rewrite.md Secs. 2.36-2.37, and the landed test
+% `test_the_absolute_instruction_totals_are_a_RECORDING_not_an_assertion`):
+% the model reproduces 8 of 8 measured joint (BT, compact) argmins, which is what
+% binds the constants; its ABSOLUTE totals are recorded, not asserted, at up to
+% +83.9 % with the un-identified per-tile term and -61.0 % (one-sided) without
+% it. Decay is overpriced by 2.3x on the one at-scale compact cell (453 measured
+% against 1033), stated as a direction rather than fitted with a second constant.
+% The earlier draft's "reproduces on a minority of cells, one residual of 2.3x"
+% is STALE: that was the pre-calibration state.
+%
+% The 1.5-2x cost of making both sides dense is NOT quoted as a number: no
+% in-tree measurement was found for it, so the rider is stated structurally.
+%
+% R2 SHAPE (cut plan, 2026-08-03, user-ratified). The section is seven beats,
+% law first: (1) the billing law; (2) what the quantum does to an average;
+% (3) the two consequences for the architecture; (4) residency in ONE
+% paragraph; (5) the FLOP ledger, with the projection arithmetic displayed as
+% Eq. (projections) and the adversarial-regime rider and the flat-training-
+% memory prediction closing it; (6) the residue and why we keep it; (7) scope
+% and the artifact. Compressed here: P6 (residency mechanism), P12 (the
+% bench-harness description), P14/P15 (the residue walk-through). Relocated:
+% tab:quanta to App. B beside the residual audit that qualifies it. Every cut
+% sentence's CLAIM survives, and no cut moved a number into new prose.
+% ============================================================
+\section{Cost}
+\label{sec:cost}
+
+This section prices the head on the hardware that runs it. Accelerators issue work in blocks, so a sparse operator is billed for the blocks it touches and not for the entries it reads. Block-sparse and mixture-of-experts kernels design against that law \citep{chen2022pixelated, guo2025sonicmoe}, and so do we.
+
+What we add is where a routed head lands on it. Think of the state as a grid cut into blocks: a work item pairs an owner, that is, one block of $B_C$ leaf features, with a tile of $B_T$ tokens, and the device stages or skips it whole (Appendix~\ref{apd:costdev}).
+
+The quantization cuts both ways, and no average shows it: a candidate block holds fewer live features than the quantum it is billed for, and other candidate pairs hold nothing and skip every step. \placeholder{At $\Nst = 65{,}536$: mean live features per candidate block of $64$, k-steps paid of four, and the share of candidate pairs that skip; at-scale cell, rental-class hardware, ratified protocol.} A cost model prices the quantum, not the mean.
+
+
+Two consequences follow, and both invert the intuition that a sparse memory should touch as little as it can. Support size is nearly free once a support has paid for its tiles, so no cost argument remains for a hard per-token budget and Section~\ref{sec:allocation} can let the activation set its own boundary (Appendix~\ref{apd:costdev}).
+
+The second consequence is that clustering, not sparsity, is the quantity worth optimizing: a tile is live if any of its $B_T$ tokens touches it, so the kernel pays for the tokens' combined footprint (Appendix~\ref{apd:costdev}).
+
+Nearby tokens choosing the same features is coherence, that is, tokens in one tile agreeing on where they write, and the factorized address supplies part of it by layout, since a coarse digit selects a contiguous region (Appendix~\ref{apd:costdev}).
+
+What that gives is structural, an address whose contiguity a flat address of the same capacity would have to learn. Hierarchy is a coherence prior in that sense, the cost-side counterpart of the addressing argument of Section~\ref{sec:capacity} (Appendix~\ref{apd:costdev}).
+
+% R2 beat 4 (cut plan, 2026-08-03): the residency CLAIM is that resident bytes
+% follow what a sequence wrote, and that translation is amortized to a part in
+% a thousand; both stay, with the granule size kept because the "part in a
+% thousand" is derived from it. Cut to the artifact: the page table's key, the
+% decode walk over the exact support, and the checkpoint serializing only the
+% granules a sequence wrote. Those are mechanism a reader can read in the code.
+Provisioned capacity and resident memory come apart, which is the same argument on the storage side. The state is paged at a fixed granule and a page is admitted from the realized write support, so resident bytes scale with what a sequence wrote and not with the provisioned count (Appendix~\ref{apd:costdev}).
+
+In effect, a head may provision far more features than the memory it ever occupies. Translation costs a part in a thousand of the state traffic it rides on \placeholder{translation overhead as a share of state traffic at the at-scale cell, rental-class hardware, ratified protocol}.
+
+% R2 (cut plan): tab:quanta RELOCATED to App. B (Limits of the cost evidence),
+% where the residual audit that qualifies it already lives. With its work
+% column \TODO-demoted the table prints three columns of mechanism names, so
+% the body keeps only the sentence naming the terms. \label{tab:quanta} moved
+% unchanged; Sec. 8 and fig:surfaces' caption still reference it.
+Measurement recovers that law, separating a fixed per-tile term from a per-column one and pricing decay per k-step and not per tile, which Appendix~\ref{apd:costlimits} sets out with the cell that isolates each. Enabling the clock of Section~\ref{sec:decay} is therefore cheap in the regime it targets, since a leaf outside the write support adds no tiles.
+
+\subsection{The FLOP ledger}
+\label{sec:ledger}
+
+We price the comparison with softmax attention per pair and then count pairs, since attention's per-token cost grows through the sequence and any one token's price misstates the total. Attention pays $\dqk + \dv$ multiply-accumulates per query-key pair, which is $2\dv$ at the standard head shape $\dqk = \dv$ that the ledger below assumes, and RoLA pays about $\dv$ per (token, leaf) pair (Appendix~\ref{apd:costdev}).
+
+The pair counts run the other way, causal attention visiting the triangle and RoLA the square its dense read sweeps. At $\Nst = L$ the two prefill totals meet.
+\begin{align}
+  \text{attention} \;\approx\; 2\dv \cdot \tfrac{L^2}{2} \;=\; L^2 \dv,
+  \qquad
+  \text{RoLA} \;\approx\; \dv \cdot L\Nst \;=\; L^2 \dv .
+  \label{eq:parity}
+\end{align}
+The two factors of two cancel, so the totals are equal.
+
+Two riders bound that equality. The square is the count for the wiring whose read is dense over the leaves. Where a level reads sparsely the tile skipping above takes the RoLA side below it, so Eq.~\eqref{eq:parity} is an upper bound there and an equality here. Both sides also exclude input projections, and by different amounts. Fix $\Nst = L = 65{,}536$ addressed as two levels of width $256$, with $d_{\mathrm{model}} = 1024$. The two excluded terms then read against the same $L^2 \dv$ as
+\begin{align}
+  \text{router} \;=\; 2 L\, d_{\mathrm{model}} \Slv \;=\; \tfrac{1}{4} L^2 \dv,
+  \qquad
+  \text{query, key, value} \;=\; 3 L\, d_{\mathrm{model}} \dqk \;=\; \tfrac{3}{64} L^2 \dv .
+\end{align}
+Attention's projections are therefore three sixteenths of the router's.
+
+Decode returns the same answer. Over $L$ steps the totals are $L^2\dv$ against $L\Nst\dv$, decode being the triangle paid one row at a time, and no phase tilts the ledger (Appendix~\ref{apd:costdev}).
+
+That size is the adversarial regime of Section~\ref{sec:corner}, sparse writes with dense reads, so Eq.~\eqref{eq:parity} says we reach attention's arithmetic while paying to learn what attention gets free (Appendix~\ref{apd:costdev}).
+
+% R2 (cut plan): the harness description (three modes over (N, L), which mode
+% is which) is implementation; the CLAIM is flat training memory per token,
+% and it keeps its \TODO. The mode row it waits on is unchanged in App. C.
+The affine recurrence makes one prediction about memory. Its backward pass reconstructs no history of the state, which Appendix~\ref{apd:proofs} proves from the detached clock, so training memory per token is predicted flat in $L$, not measured \TODO{pending: the mode-axis runs, which wait on the native backward built after the forward freeze}.
+
+% Provenance of the 10^{-4}: an order-of-magnitude estimate of bit-level
+% bookkeeping traffic against a multiply-accumulate, from the class of
+% arithmetic-vs-bit-traffic ratios, NOT a measured constant and not sourced to
+% any run in App. C. The prose says so; if a reviewer wants a number it becomes
+% a \placeholder{}. The 4.2 M decisions and the 8 KB bitmap figure that used to
+% sit in this paragraph were derivable from the stated B_C, B_T, Nst, L; they
+% were CUT by the R2 compression (cut plan, 2026-08-03) as arithmetic a reader
+% can redo, not as claims. The claim (a floor of order 1e-4, not zero) stays.
+%
+% The keep-the-term sentence states the decision and its structural caveat
+% (the term scales with Nst*L, the retiring mechanism does not) rather than
+% rejecting the removal silently: standing rule "structural waste beats
+% today's payoff" says surface, do not decide.
+One term in the total stays linear in $\Nst$ whatever a wiring touches, since the kernel decides candidacy once per (owner, tile) pair, $\Nst L / (B_C B_T)$ of those decisions over a prefill. Those are taken as word operations over the branch bitmaps the routing already publishes.
+
+A bit of bookkeeping runs against a multiply-accumulate at a ratio near $10^{-4}$, which we have not measured and state only to an order of magnitude. The slope-zero line of Figure~\ref{fig:surfaces}(b) is therefore predicted to flatten onto a floor of that order and not onto zero.
+
+We keep the term, and Appendix~\ref{apd:quanta} works out why removing it would cost more than it does, together with the structural caveat that the term scales with $\Nst L$ where the mechanism that would retire it stays fixed.
+
+We claim parity at capacity-fair $\Nst = L$, matched on addressing entropy, and not a throughput multiple at long $L$. Any fixed-state model wins that eventually and by construction. Concurrent work already reports large multiples over FlashAttention at $131$K \citep{ghriss2026kata}, a number that measures the regime rather than the architecture.
+
+Memory feed and exposed latency bind this kernel, not arithmetic. A model counting work alone cannot close that gap. We report the law, and we release the implementation. What the evidence behind the model covers, and where it stops, is Appendix~\ref{apd:costlimits}.
+
+\TODO{Artifact URL once minted.}

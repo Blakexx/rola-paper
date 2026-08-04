@@ -1,0 +1,163 @@
+% ============================================================
+% 3. Routed slot memories as linear attention
+%
+% Owns Prop. 1 (prop:reduction) and two tables: tab:translate, the reduction
+% read as a dictionary (it is what licenses the vocabulary phase change: this
+% section is the last one written in routing words, and Secs. 4-9 speak linear
+% attention); and tab:family, the whole routed family.
+%
+% TABLE MERGE (user-ratified 2026-08-03): tab:nonreducing is GONE, its rows
+% folded into tab:family. Under the three-beat spine both tables held the same
+% objects (routed designs = key producers on a recurrence) differing in one
+% attribute, so the physical split was the old two-wing boundary surviving as
+% furniture. The "Recurrence" column types each row's A_t and SUBSUMES the old
+% decay-clock column, decay being the diagonal recurrence's content. The old
+% "Where it differs from the form" column is DELETED: it restated the recurrence
+% entry as a verdict. The reduction's coverage now reads off the Recurrence
+% column, and the caption says so in choice register (Sec. 1's beat-2), not as
+% adjudication. Neither table carries a "reduces" column: membership is the
+% statement. REGISTER (three-beat reframe,
+% 2026-08-03): tab:nonreducing is RELATED WORK, not a contribution-bearing
+% exhibit. Its intro states that the beat-1 observation (routing is key
+% production) covers those designs unchanged and that what differs is the rule
+% the router feeds; it is not an exclusion argument. The column header is
+% descriptive ("Where it differs from the form"), and the choice rationale
+% lives in Sec. 1's beat-2 paragraph, which this section back-references. The vs.-GDN standings that used to be
+% Tab. 1's last column are GONE from the paper entirely: they went with the old
+% campaign scope (Sec. 7 header comment, 2026-08-02), and Sec. 7 carries no
+% baselines prose about the routed family beyond the no-head-to-head argument.
+% Tab. 1's last column is each paper's decay clock instead (sourced per row;
+% SSE's row was re-verified against the source on 2026-08-03: its Table 1 says
+% "Both SSE and MoM employ diagonal gating, similar to GLA", so the transition
+% is diagonal and the clock is a timestep gate, not identity/n.r.; and its
+% default read sets T'=T, i.e. dense over all partitions). GDN is a CONTENDER in
+% Sec. 7's ladder (vanilla LA, GLA, GDN, softmax attention), not a standing.
+%
+% MoM CORRECTION (2026-08-01; EQUATION NUMBER RE-VERIFIED 2026-08-03): MoM was
+% in tab:family on its framework's general update, M_t = M_{t-1} + k^T v, pure
+% additive, the framework being explicitly pluggable across linear-recurrent
+% rules. But its experiments "employ the Gated DeltaNet as the memory update
+% mechanism", and those experiments are the source of the vs.-GDN standing
+% Sec. 7 quotes. The as-published guard therefore puts MoM-as-evaluated in
+% tab:nonreducing, where it is now the guard's exhibit rather than its
+% counterexample.
+%
+% The equation number is MoM's Eq. 8, as the tab:nonreducing cell states.
+% Source of record: rola-scratch/workflows/paper-pile2-verification/
+% mom-sdm-fwpkm.md, which transcribes Sec. 3.2.2's "2. Memory Update: We update
+% the activated memory state using k,v: (8)" as M^m_t = M^m_{t-1} + (k^m_t)^T
+% v^m_t. Two earlier notes in this header were wrong and are retracted: Eqs. 5-6
+% are the router's score/top-k/normalize equations and not a memory update at
+% all, and the readout o_t = q_t M_t sits at Eq. 4 in the preliminaries, not at
+% Eq. 8.
+% Sec. 4 references
+% prop:reduction by number; Sec. 5's Prop. 2 is the RoLA instance and is NOT
+% stated here.
+%
+% COMPRESSION RULING (coordinator-directed): the member-by-member walk through
+% Tab. 1 is compressed to the table plus one connecting paragraph, with no
+% per-row prose, RAM-Net excepted (closest prior work, fullest treatment).
+% Quarry for the discarded per-row prose: d95c2c0, 15ec38c, 039db7e.
+%
+% R5's earlier rejection of this merge (claims ledger, 2026-08-02) is
+% SUPERSEDED by the 2026-08-03 ruling above. R5 measured a merge that kept both
+% column sets and so paid six n/a cells; it was rejected on that cost, the body
+% total being unchanged at 13.651 pp. The ratified merge instead COLLAPSES the
+% columns (Recurrence subsumes the decay clock; the verdict column is deleted),
+% so no row carries an empty cell, and the ground is the spine rather than page
+% height.
+%
+% tab:phigoal (039db7e) is DISSOLVED, its one home now the connecting paragraph
+% after Tab. 1. Merging it into Tab. 1 as a second row block was built and
+% measured first: four of the five columns (max slots, reduces, vs. GDN) are
+% n/a for a dense fidelity map, so the merge pads the table with empty cells
+% and costs 0.11 pp that the compression ruling cannot afford. The contrast is
+% one sentence of prose, and it carries the four citations. tab:phigoal no
+% longer exists anywhere.
+% ============================================================
+\section{Routed slot memories as linear attention}
+\label{sec:reduction}
+
+This section establishes the identification the rest of the paper runs on: a routed slot memory is linear attention under a particular feature map. Recent bounded-state designs replace linear attention's single recurrent state with a bank of $\Nst$ slots \citep{peng2022abc, zhang2024gsa, afzal2026raven, xiao2026ramnet}. A router decides which slots each token writes and which its query reads.
+
+Read as mechanisms they look like anything but feature maps. The recurrence is indifferent to what produced the vector: a routed slot memory is linear attention under a particular feature map, and the proposition names it.
+
+\begin{proposition}[Routed slot memories are linear attention]
+\label{prop:reduction}
+Consider a memory of $\Nst$ slots, slot $s$ holding $M_{t,s} \in \R^{\dv}$, driven at token $t$ by a write vector $w_t \in \R^{\Nst}$, a read vector $r_t$, a value $v_t \in \R^{\dv}$ and a retention vector $a_t$, with $M_{t,s} = a_{t,s} M_{t-1,s} + w_{t,s} v_t$ and $y_t = \textstyle\sum_s r_{t,s} M_{t,s}$. Assume slot separability (no cross-slot mixing), input-affine writes ($w_t$, $r_t$, $v_t$ and $a_t$ are functions of the input stream and not of $M$), and a linear readout. Then with $a_{t,s} = 1$ the unrolled recurrence is linear attention at feature dimension $\dqk = \Nst$ under $\phi(k_t) = w_t$, $\phi(q_t) = r_t$, $M_t = \textstyle\sum_{j \le t} \phi(k_j) v_j^\top$; input-dependent $a_{t,s} \in (0,1]$ gives gated linear attention, $a$ acting as a per-feature decay on that map.
+\end{proposition}
+
+Separability makes the update $\Nst$ independent scalar recurrences. Affine writes make every coefficient in them a function of the inputs alone, so the sum is a feature map evaluated on the stream (Appendix~\ref{apd:ladder}).
+
+Reading a routed memory that way costs nothing and fixes the vocabulary. Table~\ref{tab:translate} is the dictionary. It is why the sections after this one speak linear attention in place of routing. What a design chooses is a feature map, and the routing words name properties of that map.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{\textbf{The reduction as a dictionary.} Proposition~\ref{prop:reduction} carries the left column onto the right one, each entry an identity rather than an analogy, so what the linear-attention literature already asks of a feature map is what to ask of a router.}
+\label{tab:translate}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Routed slot memory & Linear attention \\
+\midrule
+write routing $w_t$          & key features $\phi(k_t)$ \\
+read routing $r_t$           & query features $\phi(q_t)$ \\
+one of the $\Nst$ slots      & one feature dimension \\
+the bank, and its contents   & the state $M_t$, at $\dqk = \Nst$ \\
+retention $a_{t,s}$          & per-feature gating \\
+a level's entmax allocation  & a factor of a sparse feature map, with true zeros \\
+a leaf address               & the index of a feature \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The normalized regime is a fact about RoLA and not a simplification of it, since write mass, the clock reading it and entmax as a projection onto the simplex all need a magnitude only a nonnegative coefficient supplies. Keeping it is what puts the head on softmax attention's ground, and it scopes the paper (Appendix~\ref{apd:ladder}).
+
+The proposition's condition is a condition on the transition, and the field reads as a ladder through it. Every modern fixed-state architecture writes its state $S_t$ as a linear-in-state recurrence $S_t = A_t S_{t-1} + b_t$, with the transition $A_t$ and the input term $b_t$ functions of the input stream alone. What separates the classes is the structure of $A_t$.
+
+The identity is undecayed linear attention. Diagonal transitions are what elementwise decay and gating produce, so an unrolled product of them collapses to a per-token elementwise reweighting the keys absorb. A rank-one modification of the identity fails to commute, and dense $A_t$ is the general linear RNN; Appendix~\ref{apd:ladder} walks the ladder.
+
+
+Table~\ref{tab:family} collects the family across that ladder, the designs on the diagonal together with the routed ones built on the other recurrence. Their routing is key production like any other, so the reading above covers them all unchanged. What differs is the rule the router feeds, a transition off the diagonal for the delta-rule members and a state-dependent write for the gradient-descent one. The factorization the attention form runs on is unavailable around those.
+
+
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{\textbf{The routed family as feature maps.} Every row is one recurrence under a produced feature map, its routing key production like any other, so the feature dimension $\Nst$ compares across rows; for the diagonal rows, ours included, Proposition~\ref{prop:reduction} writes that recurrence in the attention form. We read $\Nst$ off the largest configuration each paper reports through that paper's own address formula, $4^5$ from RAM-Net's $d_p^U$ at $d_p = 4$, $U = 5$, $Nc$ from SSE's $N$ partitions over a base row count $c$, and $(d/4H)^2$ from SDM's formula at its 8B width. Where a paper states no factor we leave it symbolic. ``w/r'' is the sparsity of the write and read supports, sp.\ for sparse. The recurrence column types each row's transition $A_t$ with the clock or the rule that fills it, and the diagonal rows are the class this paper works in, the choice Section~\ref{sec:intro} states. In every row but ours the sparsity pattern is a fixed property of the design, where RoLA sets it per level: the default is sparse-write/dense-read, and the level split of Section~\ref{sec:experiments}, one level sparse on the write and another sparse on the read, realizes sparse/sparse. Sparse Delta Memory, abbreviated SDM in the first column, is unrelated to Kanerva's sparse distributed memory \citep{kanerva1988sdm}. FwPKM addresses a product-key bank of $512^2$ slots, and MoM runs four memories and a shared one, classified here as the instantiation it evaluates rather than as its pluggable framework, whose plain-additive form (its Eq.~8) is diagonal.}
+\label{tab:family}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Method & What $\phi$ is & $\Nst$ & w/r & Recurrence \\
+\midrule
+Raven \citep{afzal2026raven}   & sigmoid, top-$k$       & 512               & sp./dense   & diagonal, decay on selection \\
+RAM-Net \citep{xiao2026ramnet} & Kronecker softmax      & $4^5$             & sp./sp.\    & diagonal, write mass at one global rate \\
+SSE \citep{sse2025}            & top-$k$, partitions    & $Nc$              & sp./dense   & diagonal, timestep gate \\
+Mamba-2 \citep{dao2024mamba2}  & dense, input-dependent & 256               & dense/dense & diagonal, timestep gate \\
+SDM \citep{cabannes2026sdm}    & top-$k$ scores         & $2.3{\times}10^5$ & sp./sp.\    & $I - \beta_t k_t k_t^\top$, the delta rule \\
+FwPKM \citep{zhao2026fwpkm}    & product-key top-$k$    & $2.6{\times}10^5$ & sp./sp.\    & state-dependent, a local gradient step \\
+MoM \citep{du2025mom}          & softmax, top-$k$       & $5\,\dqk$         & sp./sp.\    & $I - \beta_t k_t k_t^\top$, gated delta as evaluated \\
+\addlinespace
+RoLA (ours) & mixed-radix entmax & \placeholder{largest trained $\Nst$} & per level & diagonal, per-level write-mass clock, detached \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Raven, SSE and RoLA write sharply while reading densely, and they pay differently for it (Appendix~\ref{apd:ladder}).
+
+The recurrence off the diagonal gives up the chunked parallel form, which is one of the reasons Section~\ref{sec:intro} gives for taking the affine side. Whether the affine side is itself the limitation is the hypothesis this paper tests (Appendix~\ref{apd:ladder}).
+
+The proposition places every row of the table, ours included, since routing is a way of building a feature map and routing per se is novel nowhere. The form holds for any router, so a routed linear-attention head is a setting of it and not a design beside it. What a proposal still owes is its map, its clock and its kernel.
+
+Three things separate ours from the rest of the family. The first is scale. Our map is exact entmax over a factorization sized for $\Nst$ between $10^5$ and $10^6$, three orders above the $10^2$ to $10^3$ at which the routed alternatives report a trainability fix (Appendix~\ref{apd:ladder}). This paper's kernel addresses $\Nst = 65{,}536$ (Section~\ref{sec:cost}), and Table~\ref{tab:family}'s open cell is the largest trained one.
+
+The second is the decay. Advancing by received write mass is prior art we carve out below; ours are two properties of that clock, a rate learned per level and exact detachment in place of a proxy gradient (Section~\ref{sec:decay}).
+
+The third is a kernel at $\Nst = L$ (Section~\ref{sec:cost}). Without one, describing a slot memory as linear attention at $\dqk = 10^6$ restates the design and does not price it (Appendix~\ref{apd:ladder}).
+
+RAM-Net is the closest prior work and anticipates much of the mechanism, so we state the overlap in full \citep{xiao2026ramnet}. It partitions the input into $U$ sub-vectors, softmaxes each and synthesizes a slot address as their Kronecker product, giving $d_p^U$ slots, then truncates to the top $K$ of them. Its update is affine and key-free, its decay a continuous power of the write weight a slot receives, and it ships sparse kernels that decode addresses without enumerating the product. Factorized product addressing, key-free affine slot writes, a normalized readout over addressed slots and write-driven forgetting belong to that work, and we claim none of them.
+
+What we add is a hierarchy in place of a flat factorization, and exact entmax where RAM-Net truncates a softmax to its top $K$. Our rate is learned per level and detached, where its clock is one global exponent trained through a proxy gradient. Appendix~\ref{apd:ladder} states the overlap and the four differences in full.

@@ -1,0 +1,565 @@
+% ============================================================
+% Appendices. Skeleton stub; fill per PAPER_STRUCTURE.md.
+% ============================================================
+\appendix
+
+% ------------------------------------------------------------
+% A. Proofs.
+%
+% CONJECTURE 1 (level-split generality) DELETED 2026-08-02, user-ratified
+% (audit C-40): the paper commits to no ordering of the wirings, so the
+% "level-split is the general form and shared-support its collapsed
+% approximation" claim is gone and must not come back from the quarry (it sat
+% under \subsection{Level-split and shared-support geometries} at 1544452).
+% The obstruction argument survives as plain prose: the two geometries differ
+% in kind, and tab:arms prices them side by side. The amsthm `conjecture`
+% environment declared in generic/main.tex:33 is now UNUSED by any section;
+% the preamble was left alone deliberately.
+%
+% Transcriptions-with-proofs of ratified results, not new mathematics. The
+% order-invariance remark following Lem. 2 ("the trace is not the
+% configuration") is NOT presented as a finding: permutation invariance of an
+% undecayed set sum is the standard property, the same one attention has
+% without positional features, and it is why positional encoding exists (user
+% correction, 2026-08-03). What the paragraph carries is the second clause, the
+% write-mass clock as an alternative order-breaking mechanism inside the
+% recurrence. The beyond-the-record marker went with the reframing.
+% Every other statement below is verified against
+% ROLA_HIERARCHICAL_VALUE_MEMORY_ARCHITECTURE.md rev 2026-07-29.18 (the
+% capacity theory and the model mathematics) and, for the sensitivity, against
+% GLA_MASS_DECAY_SPEC.md 3.4 and NATIVE_BACKWARD_DESIGN.md W6:
+%   Prop. 1 proof, unrolling + gating       <- arch 5.1 (805-818); the gated
+%                                              rebasing verified symbolically
+%   Prop. 2, Kronecker identity             <- arch 5.1 (805-818)
+%   Lem. 1 radix code + support converse    <- arch 5.1 caveat (820-828);
+%                                              quarry tightening item 1
+%   Lem. 2 injectivity, layer-1 bound,
+%          not-self-verifying rider         <- arch 7, T0 + its CORRECTION and
+%                                              T0 rider (1323-1360), as
+%                                              corrected by the user ruling of
+%                                              2026-08-03: NEITHER readout is
+%                                              self-verifying (normalization
+%                                              erases the alarm in both), so
+%                                              the rider states only that a
+%                                              read addresses the feature and
+%                                              not its items. Sec. 5's header
+%                                              carries the full ruling.
+%   Lem. 3 disjoint tightness + witness     <- arch 7, T1 (1383-1395)
+%   Lem. 4 agreement law + depth            <- arch 7, T3 (1401-1406) and the
+%                                              depth-dynamism block (1427-1435)
+%   Shared-support error decomposition      <- Sec. 4 Eq. (7) source semantics
+%                                              (routing/reference.py
+%                                              _union_split_with_support)
+%   Decay sensitivity + P_ref rule          <- spec 3.4; design doc W6
+% The sparsemax truncation witness and the gated rebasing were both checked in
+% a computer algebra system rather than asserted.
+% ------------------------------------------------------------
+\section{Proofs}
+\label{apd:proofs}
+
+Notation follows Section~\ref{sec:rola} throughout, and each result appears in the form the body uses.
+
+\subsection{The reduction and its RoLA instance}
+
+\begin{proof}[Proof of Proposition~\ref{prop:reduction}]
+Slot separability makes the update $\Nst$ scalar recurrences over a common value, so slot $s$ evolves without reference to any other slot. Unrolling it from $M_{0,s} = 0$ gives
+\begin{align}
+  M_{t,s} \;=\; \sum_{j \le t} \Big( \prod_{i=j+1}^{t} a_{i,s} \Big)\, w_{j,s}\, v_j .
+  \label{eq:unroll}
+\end{align}
+Input-affine writes make every coefficient in that sum a function of the input stream, so no term depends on the state it builds, and the sum is a fixed function of the stream.
+
+With $a_{t,s} = 1$ the coefficient collapses and $M_{t,s} = \sum_{j\le t} w_{j,s} v_j$, which read as an $\Nst \times \dv$ matrix is $M_t = \sum_{j \le t} \phi(k_j) v_j^\top$ under $\phi(k_j) = w_j$: the linear-attention state at feature dimension $\dqk = \Nst$. The linear readout contracts it, $y_t = \sum_s r_{t,s} M_{t,s} = \phi(q_t)^\top M_t$ with $\phi(q_t) = r_t$. Nothing in the argument inspects what produced $w$ and $r$, so a router and a projection are one object here.
+
+For input-dependent $a_{t,s} \in (0,1]$ put $A_{t,s} = \prod_{i \le t} a_{i,s} > 0$ and rebase Eq.~\eqref{eq:unroll} on it, giving $M_{t,s} = A_{t,s} \sum_{j\le t} (w_{j,s}/A_{j,s})\, v_j$. The same contraction then holds under $\tilde\phi(k_j) = w_j \oslash A_j$ and $\tilde\phi(q_t) = r_t \odot A_t$, elementwise, which is the gated form of linear attention with $a$ a per-feature decay on the map \citep{yang2024gla}. The rebasing is a change of variables rather than an assumption, and positivity of $a$ is what it needs.
+\end{proof}
+
+\begin{proof}[Proof of Proposition~\ref{prop:identity}]
+Eq.~\eqref{eq:leafcount} puts leaves in bijection with mixed-radix tuples, and under that indexing the leaf factors of Eq.~\eqref{eq:leaffactors} are Kronecker products, $W_t = g^{\mathrm{w}}_t \bigotimes_l p^{\mathrm{w}}_{l,t}$ and $R_t = \bigotimes_l p^{\mathrm{r}}_{l,t}$, since a leaf entry is the product of one entry per level. With decay disabled Eq.~\eqref{eq:recurrence} meets the three hypotheses, leaves updating independently under coefficients from the feature map and the value projection, with Eq.~\eqref{eq:global} contracting linearly, so Proposition~\ref{prop:reduction} gives linear attention at $\dqk = \Nst = \prod_l \bl$ under $\phi(k_t) = W_t$ and $\phi(q_t) = R_t$, while the router emits $\Slv = \sum_l \bl$ numbers per side and the kernel forms neither leaf vector. The mass channel of Eq.~\eqref{eq:global} is the same statement on an appended constant-one value coordinate, so the normalized readout is that identity in normalized form. With decay enabled the transition stays diagonal with coefficients determined by the input, so the rebasing above absorbs it into the feature map and the disabled case is no escape from the reduction.
+\end{proof}
+
+\subsection{Addressing}
+
+\begin{lemma}[Radix codes and reachable supports]
+\label{lem:radix}
+For allocations $p_l$ on their simplices, $\mathrm{supp}\big(\bigotimes_l p_l\big) = \prod_l \mathrm{supp}(p_l)$. Hence a point mass on leaf $s^\ast$ is $\bigotimes_l \delta_{d_l(s^\ast)}$, so every injective assignment of instances to leaves is expressible and is a radix code on the digits; and an unreachable support needs at least two levels each spreading over at least two digits.
+\end{lemma}
+
+\begin{proof}
+The entry at leaf $s$ is $\prod_l p_{l,d_l(s)}$, positive if and only if every factor is, which is the support claim. Taking $p_l = \delta_{d_l(s^\ast)}$ leaves one positive entry, at $s^\ast$. For the last part, suppose a target support is not the product of its per-level projections. Then it holds two leaves differing in at least two digits while omitting a digit-mix of them, so at least two levels project onto two or more digits; a target spreading at one level alone is a product and is reachable.
+\end{proof}
+
+\begin{lemma}[Injectivity and the layer-1 bound]
+\label{lem:inject}
+A state of $\Nst$ features loses nothing to the pigeonhole if and only if the map from sequence to written configuration is injective. Where the items a family can present at one position number at most $\Nst$, an injective write addressing is available: distinct symbols then receive distinct leaves and a sequence's address trace is unique. At layer 1 those items are the token vocabulary $V$, so $\Nst \ge |V|$, one leaf per node of that layer's graph, gives distinct tokens distinct addresses, independent of $L$ and of the corpus. Injectivity of the configuration itself asks for more than the addressing, since the configuration is a sum of deposits.
+\end{lemma}
+
+\begin{proof}
+If two histories produce one configuration, every readout is a function of that configuration and returns one answer, so a contract separating them is unservable and no reader detects or repairs the loss; if the map is injective the configuration determines the history and a decoder exists. With at most $\Nst$ symbols available at a position, a writer giving distinct symbols distinct leaves is well defined, so the address trace of a sequence is unique, and at layer 1 the family is the token vocabulary by construction.
+
+The trace is not the configuration. Under Eq.~\eqref{eq:recurrence} with decay disabled the configuration is $M_{T,s} = \sum_{t \le T} W_{t,s} v_t$, a set sum over the symbols written and blind to their order as attention is without positional features, so anagrams of one another write one configuration at every state size. Order enters through the write address, which the disjoint family of Lemma~\ref{lem:disjoint} supplies by construction, or through deposits that stop commuting, which is what the write-mass clock of Eq.~\eqref{eq:decay} does. A leaf ages by the mass accumulated before each deposit, so prefixes that differ age the state differently, and the recurrence carries what positional features otherwise carry. The layer-1 bound is a statement about the addressing and not about the order.
+\end{proof}
+
+The lemma states existence and settles neither whether the linear-per-level feature map with an entmax activation expresses an injective assignment nor whether training finds one, which is the gap Section~\ref{sec:sizing} leaves to the grid. Sharing carries the further condition of Section~\ref{sec:sizing}, since a read addresses the feature rather than the items in it and no normalized readout, ours or a similarity one, reports the substitution.
+
+\begin{lemma}[Disjoint families are tight at $\Nst = L$]
+\label{lem:disjoint}
+For disjoint per-position vocabularies $V_1,\dots,V_L$ of any sizes, under the contract that the addressing store every symbol of every sequence of the product family distinctly, the least $\Nst$ admitting a static feature map is $L$. A witness is expressible in RoLA's form at $\Slv$ feature-map outputs.
+\end{lemma}
+
+\begin{proof}
+Necessity: one sequence presents $L$ symbols at once and the contract forces them onto distinct features, so $\Nst \ge L$. Sufficiency: color by position, sending every $u \in V_i$ to feature $i$. Two symbols share a feature only when they share a position, and disjointness means they never co-occur, so no sequence collides. Vocabulary sizes do not enter, positional encoding multiplying the domain rather than the number of colors.
+
+For the witness, factor $L = \prod_l \bl$ and write the position in mixed radix, taking level $l$'s write allocation to be $\delta_{d_l(i)}$; Lemma~\ref{lem:radix} makes that a reachable point mass. Standard positional encodings leave the position linearly decodable, so each level's logits are a linear map of the input whose entmax returns the digit delta, and the coloring costs $\Slv = \sum_l \bl$ feature-map outputs rather than $\Nst$ of them. Without systematic position structure the feature map has to memorize the same assignment at a cost proportional to the total symbol count.
+\end{proof}
+
+\begin{lemma}[Agreement, and what depth changes]
+\label{lem:agree}
+A feature map serves the contract sending query symbol $u$ to stored symbol $\pi(u)$ when Eq.~\eqref{eq:agree} holds, $\mathrm{addr}^{\mathrm{r}}(u) = \mathrm{addr}^{\mathrm{w}}(\pi(u))$ for every $u$, and otherwise the read marginalizes over the digits its cue leaves open.
+\end{lemma}
+
+\begin{proof}
+Under agreement the read concentrates on the leaf the write concentrated on. That leaf holds one value, so the mass fraction cancels in Eq.~\eqref{eq:global}, $(R\,m\,v)/(R\,m) = v$, and any other leaf the read touches was never written and contributes zero to both sums (Section~\ref{sec:recurrence}). The readout is then the stored value. If agreement fails at a digit group, the cue does not determine that group's digit, so the read spreads over its branches and the active-leaf count grows with the number of instances matching the cue, which is the bill attention pays for a multi-match query. A write address may then use only features the retrieving query carries, per digit group.
+\end{proof}
+
+% RELOCATED from Sec. 5.4 by the claims ledger (R3): the subsection answers an
+% objection rather than stating or validating E4, and no later section consumes
+% it (Sec. 7.1 tests the alpha boundary and the agreement law, neither of which
+% depends on the layer-1 argument). Two sentences stay in Sec. 5.2, which
+% Lem. 2 already supports. \label{sec:router} is carried here unchanged so
+% every cross-reference survives. Prose is moved, not reworded.
+\subsection{Existence of a fixed map}
+\label{sec:router}
+
+A fixed map reuses one symbol-to-feature assignment everywhere, where attention computes an address per sequence from the data in front of it, so uniqueness across sequences looks unattainable even where single-sequence capacity is ample.
+
+At layer 1 the family of Section~\ref{sec:families} answers that objection, and Section~\ref{sec:sizing} states the sizing that answer buys. What Lemma~\ref{lem:inject} adds is that two sequences landing one fact in one feature is the redundancy banking $\alpha$ prices. Position enters through the constructor and not through any repair, positional encoding yielding the disjoint family, where the coloring of Lemma~\ref{lem:disjoint} is tight and expressible in $\Slv$ parameters at the price of the $L$ colors Section~\ref{sec:sizing} charges that family. Eq.~\eqref{eq:agree} governs the rest, deciding which contracts a fixed map can serve without asking where addresses come from.
+
+Depth supplies the dynamism (Section~\ref{sec:sizing}), and what that leaves to settle is the map itself. The map at layer $k > 1$ is static as a function while its input is context-mixed, so the composed map from sequence to address is sequence-dependent and layer 1 is the only architecturally static layer. Attention's data-dependent addressing was never a different mechanism, but the same fixed map applied to context-dependent inputs.
+
+One difference from softmax attention survives this, and it is the one we claim: the shape of the kernel. Softmax sharpens exponentially in the gap between two scores, where a product of entmax allocations sharpens polynomially on each piece of its support. That belongs to the factorized map and not to slot memory, since one softmax over $\Nst$ features would sharpen exponentially at a producer of width $\Nst$, which is the cost the factorization is there to avoid.
+
+Pooling within a feature is not a second difference. Past what its own features separate, attention weights the keys it cannot tell apart alike and returns their blend, and its keys are fixed when written, so no later query separates them either. What differs is the profile of the failure, graded on a continuous key geometry against quantized on discrete leaves, and both shrink as the partition refines relative to the data and vanish at one token per feature, where RoLA expresses attention at attention's price.
+
+Normalization is not a difference either, the normalized regime of Section~\ref{sec:reduction} being softmax's own ground.
+
+\subsection{The shared-support error}
+
+Fix a shared-support level with logits $z^{\mathrm{r}}$ and $z^{\mathrm{w}}$ and write $p^{\mathrm{r}}_\ast = \entmaxop(z^{\mathrm{r}})$ and $p^{\mathrm{w}}_\ast = \entmaxop(z^{\mathrm{w}})$ for the allocations an independent level would solve. Eq.~\eqref{eq:union} instead solves once on the averaged logits, giving $p$ with support $U$, and takes the read as $p\sigma$ and the write as $p(1-\sigma)$ renormalized over $U$.
+
+The tied case is an identity: $z^{\mathrm{r}} = z^{\mathrm{w}} = z$ gives $p = \entmaxop(z)$ and $\sigma = 1/2$ at every branch, so the write is $p$ after renormalizing and the read is $p/2$, whose uniform factor cancels in Eq.~\eqref{eq:global}. Under the sum in place of the average the solve would receive $2z$, and $\entmaxop(2z) \ne \entmaxop(z)$, so the tied case would carry a temperature the ablation would confound with the mechanism.
+
+Untied, the write error splits in two. Writing $p^{\mathrm{w}}_\ast = p^{\mathrm{w}}_\ast|_{U} + p^{\mathrm{w}}_\ast|_{U^{c}}$, the second part is mass on branches outside the shared support, which the level loses rather than attenuates, and the first differs from the shared-support write because renormalizing over $U$ redistributes what the truncation removed. Neither part shrinks as the logits sharpen. At order $2$ on a two-branch level, $z^{\mathrm{w}} = (1,-1)$ and $z^{\mathrm{r}} = (-3,3)$ give $p^{\mathrm{w}}_\ast = (1,0)$ and $p^{\mathrm{r}}_\ast = (0,1)$, while the averaged logits $(-1,1)$ give $U = \{2\}$, so the shared-support write is the point mass $(0,1)$, sitting on the branch its own logits ranked last.
+
+The read side carries no renormalization, so a factor common to every branch is free under Eq.~\eqref{eq:global}, and what survives is the truncation of $\mathrm{supp}(p^{\mathrm{r}}_\ast) \setminus U$ together with $p\sigma$ on $U$ not being proportional to $p^{\mathrm{r}}_\ast$ there, so the head forms $\mathrm{num}_t$ and $\mathrm{den}_t$ over a support the read logits did not choose alone. Each side then realizes its intent projected through the shared support rather than that intent itself, which is the partial surrender of routing independence Section~\ref{sec:wiring}'s law charges the shared solve and the error $\varepsilon$ prices.
+
+The name is descriptive rather than literal, since the averaged solve keeps branches strong in either logit and so approximates the two supports taken together, while the witness above is where it departs. And because $z^{\mathrm{r}}$ enters the support solve, a point-mass write is not protected, which is how a shared support spends the write purity that the $\Nst = L$ regime rests on (Section~\ref{sec:corner}).
+
+\subsection{Level-split and shared-support geometries}
+
+Section~\ref{sec:wiring} derives shared-support routing and a level split as two purchases of one guarantee, and the two are not two settings of one geometry. A shared-support level produces one support serving both sides, where a level split produces two supports sparse in different level coordinates, a write slab $\mathrm{supp}(w_A) \times B$ against a read slab $A \times \mathrm{supp}(r_B)$, and these do not coincide, so the geometries differ in kind rather than in degree. Table~\ref{tab:arms} prices them side by side.
+
+The split generalizes further, since Section~\ref{sec:wiring}'s intersection guarantee needs one dense side per level and no more. The design space is then a per-level assignment of sides, in which a balanced choice puts both operations near $\sqrt{\Nst}$ touches with coupling kept and each side still solving its own support, paying by splitting the exact-addressing exponent between read and write, and the released kernel runs such assignments as configuration. We leave that family unexamined, and as interior-regime exploration alone: a point-mass write needs a point mass at every level, so the natural sparse-write, dense-read configuration is the only member that writes injectively at $\Nst = L$, and the guarantee of Section~\ref{sec:ledger} for that regime belongs to it.
+
+\subsection{The decay sensitivity}
+
+Write $A_{t,s} = \mathrm{keep}_{t,s} = (1 - \mathrm{rate}_s)^{c_{t,s}}$ with $c_{t,s} = \mathrm{sg}[w^{\mathrm{leaf}}_{t,s}] \in [0,1]$ the detached clock of Eq.~\eqref{eq:decay}. Because $c$ carries no gradient, Eq.~\eqref{eq:recurrence} stays affine in the state with input-determined coefficients, so the value and key-feature gradients travel through the deposit and the read alone and never ask for $M_{t-1}$.
+
+The dial gradient does ask for it, and one state-sized plane supplies it. Define $P_{t,s} = \partial M_{t,s} / \partial\, \mathrm{rate}_s$, which obeys
+\begin{align}
+  P_{t,s} \;=\; A_{t,s} P_{t-1,s} \;-\; c_{t,s}\,(1-\mathrm{rate}_s)^{c_{t,s}-1} M_{t-1,s},
+  \qquad P_{0,s} = 0 ,
+  \label{eq:sens}
+\end{align}
+a forward recurrence of the state's own shape, carried in the same scan. The backward pass then contracts output and final-state adjoints against $P$ and needs no chunk-boundary snapshot of the state. The leaf rate is the product $\mathrm{rate}_s = \prod_l \delta_{l,d_l(s)}$ over the dials on its digits, so $\partial / \partial\, \mathrm{rate}_s$ scatters to the per-level dials by prefix and suffix products that stay defined at a zero dial, at $\Slv$ dials rather than $\Nst$ of them. Were the clock attached, $c$ would depend on the key features and Eq.~\eqref{eq:sens} would couple to it, which is the snapshot the stop-gradient removes.
+
+% R5 (cut plan, 2026-08-03): the kernel PRESCRIPTION is gone (the scale's
+% closed form s^0 = (1-rate)^{P_ref}, P_ref = half the tile's clock mass,
+% applied on entry and removed on exit to centre the exponent range). What a
+% proofs appendix owes is the exactness statement and the size of the error a
+% wrong implementation makes, and both survive below. The recipe lives in the
+% released kernel.
+A kernel rebasing a tile by a per-leaf scale, as one holding the exponent range in a usable band does, keeps that exact. The joint tile map on $(M, P)$ is homogeneous of degree one in such a scale, so scaling both blocks on entry and unscaling both on exit changes neither, and the sensitivity survives the rebase, provided the scale is independent of the rate. A tile's rate dependence enters through Eq.~\eqref{eq:sens}'s source term and nowhere else, so differentiating the scale instead adds a multiple of the whole state, an error the size of the state rather than of the rounding.
+
+% ------------------------------------------------------------
+% RELOCATED HERE 2026-08-03 (accessibility pass, style-survey REPORT.md P4:
+% "relocate to appendix", body:appendix page ratio 3.17 against a field range
+% of 0.14-1.14). Each subsection below is the full derivation whose CLAIM,
+% one-sentence gloss and pointer stay in the body; nothing is stated twice,
+% and no wording changed in substance on the way here. Sources: Sec. 5's
+% nonnegative-rank degeneration (05_capacity.tex:141 at dd61cc6), Sec. 5's
+% disjoint-family and sharing-safety derivation (:253), Sec. 6's per-pair
+% candidacy accounting (06_cost.tex:152), and Sec. 7's instrument
+% construction with tab:recipe (07_experiments.tex:163, :187-207).
+% ------------------------------------------------------------
+
+\subsection{Spread assignments and the nonnegative rank}
+\label{apd:nonneg}
+
+Section~\ref{sec:sizing} sizes for point-write assignment, each item entering one feature. Assignments that spread an item over several features are bounded by a different quantity, the nonnegative rank of the contract matrix rather than a coloring, the contract matrix being the one whose rows are the queries and whose columns the items, carrying the weight each query's target puts on each item. Against the contracts this paper instruments that bound concedes nothing. A point lookup returns one item per query, so the matrix has a distinct row per query and full nonnegative rank on the items live at once, and its bound degenerates to the one point writes already give. The relaxation is left to a contract class asking only for fixed mixtures, at ratios frozen at write time, so the reader scales features and never the members inside them, and what such a class demands in general is beyond this paper.
+
+\subsection{When sharing a feature is safe}
+\label{apd:sharing}
+
+Sharing one feature between two symbols is safe when no retrieval map in the contract addresses one of them without the other. A disjoint family makes this automatic, a query for position $i$ intending only what position $i$ stored. A shared family does not, and the failure is silent for both, neither readout verifying itself. Both are normalized averages, so a read returns a confident blend however poor the match, and past the demand a width provisions both weight wrong content confidently. What differs is where identity is kept. Attention keeps the key as data, one per occurrence, so discrimination degrades by degrees under packing pressure, and exponential capacity per unit of width holds that regime cheaply out of reach. A grid folds identity into the address at write and discards the residual, so a read intending $u$ in a sequence holding only $v$ takes $v$ at full magnitude with nothing to grade it. The asymmetry is graded against quantized failure, a difference of regime and not of verification.
+
+\subsection{The per-pair candidacy term}
+\label{apd:quanta}
+
+Section~\ref{sec:ledger} keeps the term that stays linear in $\Nst$ whatever a wiring touches. Enumerating the realized support instead would add a second kernel structure and the arbitration between the two, which at a bit-level constant costs more than the term does. The caveat is structural, and we state it rather than settle it: the term scales with $\Nst L$ where its removal mechanism does not, so the decision rests on today's constants, and a size or a machine that moves them retires the term instead.
+
+\subsection{Constructing the presence-recall instrument}
+\label{apd:instrument}
+
+The contract of Section~\ref{sec:theorygrid} is dense over what a sequence writes: every item position is a read, so coverage is total by construction and evaluation is exhaustive over those positions. That keeps a measured threshold sharp against the demand rather than smeared by sampling luck. The label class is planted per position, the generator choosing whether the target has occurred and then drawing an item that realizes the choice. The chance line is then one half at every supervised position, and no positional prior leaks into the score. A positive is planted with an asserted separation between the occurrence of $\pi(x_t)$ and the position that asks for it, so no read is served out of the residual stream.
+
+Cells are small, since the axis is addressing rather than scale and cheap cells buy breadth. Table~\ref{tab:recipe} is the configuration, and one of its settings carries a reason. The learning rate is swept per column from $\{3 \times 10^{-4}, 10^{-3}, 3 \times 10^{-3}\}$, the best cell reported and the winner re-run at further seeds. A rate at which a column fails to train is then a point in the sweep rather than a verdict on the column, and no threshold rests on a single rate.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{\textbf{Training configuration for every cell of the grid.} Held identical across the four routed columns and the attention reference cells, and the winning rate's cell per column and $\Nst$ re-runs at further seeds for its error bar.}
+\label{tab:recipe}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{11.2cm}@{}}
+\toprule
+Setting & Value \\
+\midrule
+Backbone & two layers at model width $128$ \\
+Training & $40$ epochs on $20{,}000$ examples \\
+Learning rate & swept per column from $\{3 \times 10^{-4}, 10^{-3}, 3 \times 10^{-3}\}$, best reported, winner re-run at further seeds \\
+Ladder in $\Nst$ & $\{16, 32, 64\}$ at demand $16$; $\{32, 64, 128\}$ at demand $64$ \\
+Attention's key width & $\{4, 8, 16, 32\}$ at demand $16$; $\{8, 16, 32\}$ at demands $32$ and $64$ \\
+Sequence length, vocabulary, batch, seeds & $64$ tokens at demand $16$ and $256$ at demand $64$; vocabulary $8{,}192$; batch $64$; seeds $0$ and $1$ at the first stage \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ------------------------------------------------------------
+% DEEP RELOCATION 2026-08-03 (user ruling: option (d), relocation and not
+% deletion). The body was 13,646 prose words over 20 printed pages against
+% A7's 9,000 / 16. Whole arguments moved behind the fold here; NO claim was
+% cut. At every donor site the body keeps the claim, a one-sentence gloss and
+% a pointer, and the argument survives verbatim below. Law qualifiers travel
+% with their laws. This is the field's own stratification (Based runs 9 body
+% pages over a 65-page appendix). Per-move log: rola-scratch/workflows/
+% paper-accessibility-pass/notes.md.
+% ------------------------------------------------------------
+\subsection{The wiring family: per-candidate development}
+\label{apd:wirings}
+
+Disjoint supports are then permanent dead directions with no re-entry signal, the gap the top-$k$ lineage patches by recruiting with injected noise \citep{shazeer2017moe}. Attention sits inside this law, at one corner of it. It writes a point mass per occurrence and reads densely, which is the sparse-write, dense-read wiring with the write map supplied free by position in place of learned. Its own collapse at small key width is the supply-side failure of discrimination the theory charges every member.
+
+Correctness survives. Untied sparse supports are exact already, the unwritten leaves of Section~\ref{sec:recurrence} being inert in both sums, and what the intersection buys is gradient on the leaves a task uses, through training over many steps. The cheapest wiring there is falls to the law all the same. A point-mass write against an independently solved sparse read can promise overlap on no step, and it is untrainable by construction.
+
+A guarantee holding for every pair of logits means at least one side's realized support departs from an independent point mass: whenever the two intents disagree, some realized support departs from the singleton its own logits chose. Table~\ref{tab:wirings} is what that leaves, the wiring family being the solution set of the guarantee inside one mechanism, classified by what each purchase pays with. The subsections below construct the three that pay. The default configuration takes the first, staying the sparse-write, dense-read topology of Section~\ref{sec:topology} under leaf mass decay, and Section~\ref{sec:experiments} runs the three against it.
+
+What it pays is touches: the write is one leaf and the read is all $\Nst$ of them. A query therefore touches the full width of every level and the only sparsity a kernel can harvest is on the write side. Nothing is approximated on either side, which is what makes this the reference the other two are read against (Section~\ref{sec:experiments}).
+
+The payment lands on the write: a level that reads sparsely must write densely if the two supports are to keep meeting. The write therefore becomes a contiguous block of features rather than a point mass and leaks mass into its neighbors. Appendix~\ref{apd:proofs} states the geometry formally, together with the wider family of per-level side assignments this paper leaves unexamined.
+
+This is the deliberate exception at the agreement end, both sides sparse at $O(1)$ touches and $r w \ll \Nst$. Its two supports are identical within a token, one solve producing them, so what exactness asks of it is across time: that the one map send a cue where it sent the content. Where the query carries the key itself that holds by construction, the same map on the same input, and the guarantee is as strong as the covering wirings' at $O(1)$ touches.
+
+What it is exposed to is a cue diverging from the content, where the burden is canonicalizing the two through that one map (Section~\ref{sec:capacity}). The covering wirings pay touches to make no demand on the cue, and the shared support pays no touches and makes that demand instead. Eq.~\eqref{eq:touchproduct} is why nothing reaches $O(1)$ on both sides while leaving each side its own support.
+
+The coupling costs an approximation, from two sources decomposed in Appendix~\ref{apd:proofs}. The first is that the shared solve drops a branch one side wanted. The shared support in general differs from the support of $\entmaxop(z^{\mathrm{r}})$, so one side's strongly negative logit can push the other side's branch below the averaged threshold, losing its mass outright. The second is reweighting among the survivors. Renormalizing the write side redistributes the dropped mass, and $p \sigma$ is not $\entmaxop(z^{\mathrm{r}})$ restricted to the shared support, so the head forms $\mathrm{num}_t$ and $\mathrm{den}_t$ over a support the read logits did not choose alone.
+
+We write $\varepsilon$ for the resulting task-level error: what a shared support costs. It measures how often a task reads outside where it writes, or the reverse, strongly enough for one support to get it wrong. That depends on the task's read and write geometry, so we measure $\varepsilon$ (Section~\ref{sec:experiments}).
+
+A shared support and factorization charge different sides. Factorization constrains reads and leaves writes alone, since an injective assignment of instances to features is always expressible (Section~\ref{sec:capacity}). A shared support charges the write side: $z^{\mathrm{r}}$ enters the support solve, so a point-mass write is no longer the write logits' own. At $\Nst = L$, one feature per token with $L$ the sequence length, write purity is the whole guarantee. It survives a shared support wherever the query carries the key itself, one solve taking cue and content to one leaf, and what a shared support spends is the case where the two diverge.
+
+Each side carries one mass and no more, since per-level masses collapse into a side-wide product and add parameters without adding expressivity. A token shares content the same way, writing one value vector everywhere it writes. Neither factor is ever formed over leaves, the kernel folding the $\Slv$ per-level allocations instead (Section~\ref{sec:cost}).
+
+Each level carries one of two configurations. An independent level owns separate read and write allocations, each from its own solve, so a token may write to a branch that queries avoid. A shared-support level owns one support solve for both sides (Section~\ref{sec:union}). Level order sets the factorization and the layout, nothing semantic. The default configuration is sparse writes on the coarse levels above a leaf-most independent level with dense reads. Figure~\ref{fig:head} draws a head whose levels put the sparsity on different sides.
+
+Exactness then classifies what survives that cut. A level serves a read without error under either of two conditions. Under agreement both sides pin the level's digit, at one touch a side, and the cue must carry that digit (Section~\ref{sec:capacity}). Under coverage one side spreads over all $\bl$ digits and asks nothing of the cue there, at $\bl$ touches on that side.
+
+A dense read spreads over every branch of every level while the write stays a point mass, so the read support contains any write support whatever the two producers do. A side is dense because its level carries softmax, which cannot emit a zero, so the full support is a property of the activation and not of the logits. Every level is covered, and the read makes no demand on the cue at any of them.
+
+Because a leaf factor is a product over levels, the two sides can take their sparsity at different levels, each keeping its own logits, solve and support. Every level is then dense on one side and sparse on the other, so no level is pinned by both and the supports meet through the product structure alone. Coverage still holds at every level, and the envelope at equal widths is $(\sqrt{\Nst}, \sqrt{\Nst})$, one square root a side.
+
+\subsection{The write-mass clock: lineage and detachment}
+\label{apd:clock}
+
+The clock ignores that gain by design. Eq.~\eqref{eq:global} reads a ratio, so relative eclipse, a large later write overshadowing a small earlier one, is already answered for at read time. A clock charging decay in proportion to a share of the accumulated mass would depend on the state it ages and cross the input-affine boundary of Section~\ref{sec:reduction}. The per-token simplex allocation is the normalized clock unit that stays inside it.
+
+In the gated linear-attention lineage the clock advances once per timestep, so a feature ages even when it takes no write \citep{yang2024gla, gu2023mamba, yang2024gdn, qin2024hgrn2}. Here the exponent is the leaf's own write mass, so a feature ages in proportion to the interference it has taken on. That is the law we want when Section~\ref{sec:capacity} sizes the state so that almost every feature is idle at almost every step. A zero in any stored level factor gives $w^{\mathrm{leaf}}_{t,s} = 0$ and $\mathrm{keep}_{t,s} = 1$, not approximately and not learned near one, so an unwritten feature keeps every bit.
+
+Kimi Delta Attention gates per channel \citep{kimi2025linear}, FG$^2$-GDN makes the delta update's learning rate per channel \citep{sun2026fg2gdn}, and Gated DeltaNet-2 splits the erase gate from the write gate, arguing that the two should be decoupled \citep{hatamizadeh2026gdn2}. Tying them is the contrary design, and inside that family we know of no other gate that is an algebraic function of the feature's own write mass. That is what carries the identity above into a backward pass with no state history. A state of $10^5$ to $10^6$ features needs that to be trainable and not only definable at that size, the largest trained $\Nst$ being Table~\ref{tab:family}'s open cell.
+
+In the gated linear-attention lineage the clock advances once per timestep, so a feature ages even when it takes no write \citep{yang2024gla, gu2023mamba, yang2024gdn, qin2024hgrn2}. Here the exponent is the leaf's own write mass, so an unwritten feature keeps every bit, which is the law we want once Section~\ref{sec:capacity} sizes the state so that almost every feature is idle at almost every step (Appendix~\ref{apd:clock}).
+
+The clock also runs detached. Data-dependent gating normally costs a backward pass its independence from the state trajectory. The stop-gradient leaves the recurrence affine in the state, so the backward pass needs no state history and no chunk-boundary snapshots (Appendix~\ref{apd:proofs}). We scope the claim to the chunked gated-linear-attention family, where the gate advances at every timestep through a function parameterized apart from the write allocation. The finest-grained recent forms sharpen that separation.
+
+\subsection{Capacity and addressing: what factorization costs}
+\label{apd:capacity}
+
+That gap is what depth buys, and we pay for it in what the map can express. The feature vector is a product of per-level marginals, one simplex choice per level rather than a free point in $\R^{\Nst}$. Mass on the leaves $(0,0)$ and $(1,1)$ alone is therefore unreachable, the product forcing all four cells. The state is freer: a sum of product-form deposits need not itself be product-form, so the memory is full rank while the addressing factorizes.
+
+Factorization costs nothing where writes want point masses. The obstruction needs mass on two digits at two levels, so it never reaches a point mass, a delta on a leaf being the product of the per-level digit deltas. Any injective assignment of instances to features is a radix code (Appendix~\ref{apd:proofs}). It charges spread read patterns instead, the side where a task's reads leave room.
+
+Attention provisions $\exp(\Theta(\dqk))$ near-orthogonal directions, the classical count a width admits \citep{johnson1984}, and materializes $O(L)$ of them per sequence as its cache; RoLA provisions $\Nst$ combinatorially and commits the features written into. Both are logarithmic-class addressing for an exponential space. The exponential count on the attention side is the modern Hopfield line's capacity result read as a provisioning statement \citep{krotov2016dam, demircigil2017capacity, ramsauer2021hopfield, hu2024optimal}, how many addresses a width can resolve rather than how many a retrieval requires.
+
+Read that way they sit beside the demand account below. A combinatorial address space is the classical sparse-coding one \citep{willshaw1969, kanerva1988sdm}, where a hierarchy runs over energy levels \citep{krotov2021hierarchical}. Recall capacity has an existing treatment in the worst case: communication complexity bounds the embedding dimension an attention layer needs \citep{sanford2023representational}, and a state of fixed size bounds what a recurrent model can copy or recall \citep{jelassi2024copying, arora2023zoology}. The graph of Section~\ref{sec:sizing} parameterizes that demand by distribution and contract.
+
+Under the normalized readout of Eq.~\eqref{eq:global} that solver has two error-free cases. A read confined to features holding one value each is exact however far the write spread, the mass fraction cancelling as $(R m v)/(R m) = v$. A read spreading over features the sequence never wrote is exact as well, those features being inert (Section~\ref{sec:recurrence}).
+
+One failure mode remains, shared by every combination of spread and point addressing. Read support lands on features holding other values, at write-set ratios the read weights cannot cancel. Point writes with point reads expose the least of that surface and spread with spread the most. The choice among them is a dial between fidelity and robustness.
+
+\subsection{Regimes, licensing and the adversarial contract}
+\label{apd:regimes}
+
+Every feature then holds at most one live value, which is the first exact case above: the mass fraction cancels and the read returns what was stored. The least $\Nst$ that serves the contract is the chromatic number of the graph, the fewest colors a proper coloring takes (Figure~\ref{fig:coloring}). That is, the head needs one feature for every item a read has to keep apart from the others at the same time. It is not $\sum_i |V_i|$, and not $|V|^L$, which counts sequences that one coloring covers together.
+
+Every quantity this paper calls a demand is that number evaluated on a particular graph, and sequence length, vocabulary sizes and window widths enter as parameters of the construction that produced the graph. The graph and its chromatic number are the whole of the demand, and that number is the most any contract over the realized sequences can ask for, so provisioning to it leaves every fulfillment pattern available. Restricted contract classes ask for less and never for more, which is what makes one number serve them all.
+
+The quantity is also classical and computable with certificates on the families the instrument builds, so Section~\ref{sec:theorygrid} stamps a solved demand on a cell before it trains. A demand theory no one can solve is a demand theory no one can test. What is left to an architecture is which colorings its map expresses, at what production cost, and whether training finds one, the subject of the rest of this section and of the grid of Section~\ref{sec:theorygrid}.
+
+The first regime is the one random draws over a shared vocabulary present, multi-query associative recall among them, and the instrument of Section~\ref{sec:theorygrid} runs in it, for that guarantee tier. The second is the coloring the factorization expresses structurally, at $\Slv$ parameters with levels as position digits (Appendix~\ref{apd:proofs}), which is what makes the positional regime cheap. The third is induced by the contract, and its width is fixed before any architecture is chosen.
+
+A read that never demands a superseded item apart from a live one leaves an interval graph of that width whatever the head does. Decay is the supply that meets that demand and not its source, since without it a superseded item keeps its mass in the feature and contaminates the normalized read, so the recency contract fails at $\Nst$ equal to the window.
+
+A contract bills two resources, and features are only the first. Coloring the graph is a storage statement: $\Nst = L$ colors it unconditionally, one feature per occurrence, and no count of features says which occurrence a read returns. The second resource is discrimination, and it sits in the map, since returning the intended occurrence asks the map producing the addresses to separate the symbols that can land in a feature. The graph fixes the colors a contract needs, so what a node count far above $\Nst$ pressures is the map that has to express the coloring over those nodes, and every design grows that side.
+
+Softmax attention grows $\dqk$ at $\Theta(\log |V|)$ in the node count, its similarity multiplying evidence across dimensions. A factorized map instead grows the sum $\Slv = \Dlv \Nst^{1/\Dlv}$ that it emits. Figure~\ref{fig:space}'s two panels are that law stated as a bill. Attention buys the cheaper address producer and pays in storage that grows with the context, where the factorization pays a polynomially costlier producer to hold its storage flat. Neither leaves that regime by provisioning features alone.
+
+The number a contract requires is thus a functional of the distribution and the contract rather than a property of the head, and what changes across families is how one comes to know it. A disjoint family, which positional encoding constructs, asks for $L$, and a designer knows that in advance. A shared family, which token identity constructs, asks for the chromatic number of the realized graph, which that graph's node count bounds from above, and which only measurement returns. Entmax triage quotients that graph to its costly edges, and $\alpha$ is set to match what survives, again a measurement. This paper measures neither.
+
+None of this asks the map to be computed per sequence. At layer 1 the family is the token vocabulary, so $\Nst$ sized to that vocabulary gives distinct tokens distinct addresses, at a size that follows the vocabulary alone (Appendix~\ref{apd:proofs}). Depth then supplies the dynamism, later layers seeing a family whose symbols carry sequence structure, so the demand falls from the graph of the whole distribution to the graph of one sequence (Appendix~\ref{sec:router}).
+
+How $\Nst$ must scale with $L$ is a property of the sequences a task realizes rather than of $L$ alone, the graph to color being the union over what a distribution presents. Natural language realizes a vocabulary $V(L)$ that grows as a sublinear power of the length of a context \citep{heaps1978}, so its nodes, and with them its chromatic number, sit far below the adversarial completion.
+
+Sizing $\Nst$ to that realized node count leaves a $\Dlv = 2$ factorization addressing it at width $O(\sqrt{|V(L)|})$ per token, which is $O(L^{1/4})$ at the exponent of one half that growth is commonly fitted at. The required $\Nst$ as a functional of the sequence distribution is the general sizing question, which this paper leaves open.
+
+Provisioning below the adversarial demand is a bet that the graph a design faces is smaller than the adversarial one, and three things shrink it. Positions carrying the same item collapse onto one node, so $L$ positions present fewer than $L$ items. Edges carry a cost, the price of confusing the pair they join, and items whose confusion costs nothing may share a color at benefit, so only the costly edges bind. And only the edges some sequence realizes are there at all, which is the ladder above: a natural distribution realizes far fewer of them than the adversarial completion holds.
+
+That ladder is literal at the first layer, whose items are tokens as they arrive. Deeper layers address learned representations, whose ambient space compounds combinatorially with depth, and the graph they color is manufactured by the mixing through the last two of those three. Canonicalization merges co-referent forms onto one node or leaves the edges between them costless, so the effective vocabulary shrinks toward referents.
+
+The representations a layer realizes concentrate far below the combinatorial completion, which keeps the union graph small deeper in the stack while its ambient space grows. How far that concentration goes stays an observation. Layer 1 is the rung where neither reduction is available, which is why sizing is literal there and why the adversarial instrument is honest at it. The map is a fixed function, so the only lever mixing holds is the distribution it hands that map, and the law above applies unchanged to the image of the mixing.
+
+The asymmetry between its two learned maps is $W_Q \neq W_K$ rather than one side learned against one side fixed. Its retrieval errors are attention-weight errors, the mirror of ours, and spread writes buy nothing at this size. A comparison here isolates the two read maps and the price of learning a write map attention gets free, and this size is what the kernel must survive (Section~\ref{sec:cost}). Appendix~\ref{sec:router} delineates the one difference from attention that survives outside this regime.
+
+That regime is an entry fee, pricing a disjoint family in which every symbol is distinct and independently addressable. Real sequences are redundant, so provisioning $\Nst = \alpha L$ sizes the state to the information in a context rather than to its token count. Conflicts below that size are purposeful: quality tracks the mismatch between what the blend merges and what the contract separates rather than the number of conflicts. Near-duplicate content pooling its mass under the normalized readout is generalization wherever the contract does not separate what pooled.
+
+What a head must address is which distinguishable symbols can occur at each position, the family $V_1,\dots,V_L$. Every statement below quantifies over such a family, and an origin is a constructor. Token identity gives the shared family, all $V_i = V$; positional encoding makes the per-position vocabularies disjoint; later layers grow the family with symbols carrying sequence structure. A query addresses with whatever cue it carries, so the disjoint and shared families are the positional and the content-associative cases. Eq.~\eqref{eq:agree} states the demand that follows: a write must address using only what the retrieving query will carry.
+
+Sizing starts from injectivity, which means that no two histories may end up as the same memory. The state loses nothing to the pigeonhole if and only if the map from sequence to written configuration is one-to-one. Where that fails, two histories produce one memory that no reader can detect or repair. An injective addressing is available whenever the items a family can present at one position number at most $\Nst$, a coarse form of the demand the graph below states in full. Distinguishing orders asks for position in the address on top of it (Appendix~\ref{apd:proofs}).
+
+Sharing one feature between two symbols is safe when no retrieval map in the contract addresses one of them without the other. A disjoint family makes that automatic and a shared family does not. Past the demand both heads weight wrong content confidently, and the difference is that attention keeps identity as data and degrades by degrees where a grid folds identity into the address and fails abruptly (Appendix~\ref{apd:sharing}). Two symbols that never co-occur may then share a feature for storage but not for retrieval, unless the cue the query addresses with covers everything that can land there.
+
+How $\Nst$ must scale with $L$ is a property of the sequences a task realizes rather than of $L$ alone, the graph to color being the union over what a distribution presents. Natural language realizes a vocabulary growing as a sublinear power of context length \citep{heaps1978}, so its chromatic number sits far below the adversarial completion (Appendix~\ref{apd:regimes}).
+
+That ladder is literal at layer 1, whose items are tokens as they arrive, and it is the rung where neither reduction is available, which is why sizing is literal there and why the adversarial instrument is honest at it (Appendix~\ref{apd:regimes}).
+
+That regime is an entry fee, pricing a disjoint family in which every symbol is distinct and independently addressable. Real sequences are redundant, so provisioning $\Nst = \alpha L$ sizes the state to the information in a context rather than to its token count, and conflicts below that size are purposeful (Appendix~\ref{apd:regimes}).
+
+The asymmetry between its two learned maps is $W_Q \neq W_K$ rather than one side learned against one side fixed, so a comparison here isolates the two read maps and the price of learning a write map attention gets free (Appendix~\ref{apd:regimes}).
+
+Every quantity this paper calls a demand is that number evaluated on a particular graph. The graph and its chromatic number are the whole of the demand, and that number is the most any contract over the realized sequences can ask for, so provisioning to it leaves every fulfillment pattern available (Appendix~\ref{apd:regimes}).
+
+The quantity is also classical and computable with certificates on the families the instrument builds, so Section~\ref{sec:theorygrid} stamps a solved demand on a cell before it trains. What is left to an architecture is which colorings its map expresses, at what production cost, and whether training finds one.
+
+One failure mode remains, shared by every combination of spread and point addressing: read support landing on features that hold other values, at write-set ratios the read weights cannot cancel. The choice among them is a dial between fidelity and robustness (Appendix~\ref{apd:capacity}).
+
+\subsection{The reduction's ladder, and the family table read row by row}
+\label{apd:ladder}
+
+The identity is undecayed linear attention. Diagonal transitions are what elementwise decay and gating produce, and they commute, so an unrolled product of them collapses to a per-token elementwise reweighting the keys absorb. The attention form survives, and this class is the reduction's domain. A rank-one modification of the identity fails to commute. The delta rule's $A_t = I - \beta_t k_t k_t^\top$, at write strength $\beta_t$ on key $k_t$ \citep{schlag2021fwp}, leaves the effective key of the value $v_t$ a history-dependent matrix, so the write-time-fixed key the form factors each stored pair through is absent from that unrolling.
+
+Gating modifies the past state too, and stays inside the form because its transitions commute. The boundary is commutativity, not state modification. The addressing may itself be routed, as in the sparse distributed line; what the folding acts on is the recurrence. That recurrence remains linear-scannable, and the designs on that side read as fast weights in their own papers. Dense $A_t$ is the general linear RNN. The reduction is a boundary inside that ladder.
+
+MoM is the exhibit: its framework's general update is plain-additive and reducible, while the instantiation it evaluates employs Gated DeltaNet memories. The same router lands on either side according to the rule dropped into it, Proposition~\ref{prop:reduction}'s condition classifying recurrences and not routers.
+
+Raven, SSE and RoLA write sharply while reading densely, and they pay differently for it. Raven reads by a softmax over all slots against a per-slot key state, so cost and state both carry the slot count \citep{afzal2026raven}, and SSE reads every partition by default \citep{sse2025}. RoLA's normalized readout is linear in $\Nst$ with no per-slot key. A support capped at $k$ on both sides cannot express those read contracts at fixed $k$, since a query with more than one match needs a dense marginalization over the slots holding them.
+
+The recurrence off the diagonal gives up the chunked parallel form. An affine, slot-separable recurrence folds a chunk with one matrix product and needs no state history in the backward pass, where a transition off the diagonal fails to commute across the chunk and brings WY-form representations and intra-chunk solves with it \citep{yang2024deltanet, yang2024gdn}. A state-dependent deposit needs the state at every write point besides. That parallel-form cost is one of the reasons Section~\ref{sec:intro} gives for taking the affine side. Whether the affine side is itself the limitation is the hypothesis this paper tests.
+
+Three things separate ours from the rest of the family. The first is scale. Our feature map is exact entmax over a factorization sized for $\Nst$ between $10^5$ and $10^6$, a runtime count of memory entries the sequence fills, where product-key expert banks reached $10^6$ units as weights \citep{lample2019pkm, he2024peer}. That is three orders above the $10^2$ to $10^3$ at which the routed alternatives report a trainability fix, collapse-prevention noise or a proxy gradient (Sections~\ref{sec:wiring} and~\ref{sec:theorygrid}). This paper's kernel addresses $\Nst = 65{,}536$ (Section~\ref{sec:cost}), and Table~\ref{tab:family}'s open cell is the largest trained one.
+
+The second is the decay. Advancing by received write mass is prior art we carve out below; ours are two properties of that clock, a rate learned per level and exact detachment in place of a proxy gradient. The tying follows: the gate is not a second free function of the input but the write allocation itself, one map serving as the addressing and as the clock (Section~\ref{sec:decay}). Concurrent work applies the same principle to cache admission \citep{cui2026hola}.
+
+What we add is a hierarchy in place of a flat factorization, so levels carry coarse and fine writes at once, each under its own configuration. Exact $\alpha$-entmax replaces softmax with top-$K$, which removes the occasion for two consequences RAM-Net reports of that choice: the high-variance gradients it reports when one softmax addresses all slots directly, and a sensitivity to the degree of the factorization. Its clock is one global exponent whose derivative at the decay boundary it trains through a proxy gradient, where ours is a learned rate per level, detached in place of smoothed. That is what yields a backward pass with no state history (Section~\ref{sec:decay}). Both clocks are diagonal, so both heads stay inside the attention form of Proposition~\ref{prop:reduction}. The capacity theory and cost model of Sections~\ref{sec:capacity} and~\ref{sec:cost} go unreported there.
+
+Separability makes the update $\Nst$ independent scalar recurrences, each unrolling to $M_{t,s} = \textstyle\sum_{j \le t} (\prod_{i>j} a_{i,s}) w_{j,s} v_j$. Affine writes make every coefficient there a function of the inputs alone, so the sum is a feature map evaluated on the stream. The linear readout then contracts it against $r_t$, which is $\phi(q_t)^\top M_t$. The hypotheses omit positivity, so the proposition also covers the gated baselines, which are customarily unnormalized. The paper works throughout in the normalized, nonnegative regime, where every routing vector lies on a simplex. The generalization to arbitrary feature maps follows, and we leave it aside here.
+
+The normalized regime is a fact about RoLA and not a simplification of it. Write mass, the clock that reads it and entmax as a projection onto the simplex all need a magnitude only a nonnegative coefficient supplies (Section~\ref{sec:rola}), and softmax attention's weights are a distribution over slots on the same ground. Classical normalized linear attention fell out of use over the instability of its running denominator \citep{katharopoulos2020}, and the readout of Section~\ref{sec:recurrence} is that same ratio. Keeping it is what puts the head on softmax attention's ground, and it scopes the paper.
+
+The rows engineer $\phi$ for address structure, asking how many resolvable slots a map indexes and at what router cost, where the older line on the same design surface engineers it for similarity fidelity instead \citep{choromanski2021performer, arora2024based, zhang2024hedgehog}. Those goals compose, and we leave approximation quality to that line.
+
+The third is a kernel at $\Nst = L$ (Section~\ref{sec:cost}). Without one, describing a slot memory as linear attention at $\dqk = 10^6$ restates the design and does not price it. SSE is the member that already reads its own update as linear attention, and it realizes the sparsity by masking a dense state or by reordering tokens by partition, reporting no utilization figure \citep{sse2025}. The reduction it states carries no cost result with it.
+
+What identifies the class is that folding a chunk's transitions into its keys asks them to commute across tokens, which means the order they are applied in cannot matter, and which the delta rule's transitions fail to do \citep{schlag2021fwp} (Section~\ref{sec:reduction}). It is efficient to implement in chunked form, and it scales to the slot counts this paper addresses. And what we are trying to match is softmax attention, which the class contains, so the delta rule's extra machinery buys nothing here. The capacity theory says how large a state has to be before the class reaches that recall (Section~\ref{sec:capacity}). What separates the family is then which map, at which addressing cost (Figure~\ref{fig:space}).
+
+The released layer takes the levels, their widths, each level's activation and side assignment, and the clock as configuration. A reducible design whose activation the layer supplies in exact form is then a setting of it, RAM-Net's per-part product softmax among them. Truncating an address to its strongest entries is not such an activation, so the members that do it, Raven and SSE, sit inside the reduction and outside that configuration space. The delta update sits outside both. Section~\ref{sec:experiments} states what the account predicts and the protocol that tests it.
+
+Capacity is then the product of the widths where the router's output is their sum, $\prod_l \bl$ slots from $\sum_l \bl$ numbers, which is the mixed-radix arithmetic the design runs on. Its slots also age on a clock of received write mass, the exponent of the decay being the write weight a slot takes in. A slot that takes no write keeps every bit, which is what a model running without a fixed horizon needs.
+
+That reading covers the whole family: routed keys under a delta rule give a routed fast-weight memory, and under an affine recurrence they give the designs studied here. Several members place themselves inside linear attention already, but each stating it for the one router it builds, and SSE states the identification for its own update, as a row-sparse formulation for linear attention \citep{sse2025}.
+
+Read as mechanisms they look like anything but feature maps: $\Nst$ is large, the routing vector is sparse, and nobody writes it down as one. The recurrence is indifferent to what produced the vector. A routed slot memory is linear attention under a particular feature map, and the proposition names the map.
+
+Much of the line since has varied the update rule, and that axis reads as a ledger of what a write off the diagonal costs to parallelize. Gating multiplies the state by an input-dependent retention before each deposit, a diagonal step that keeps a chunk foldable with one matrix product \citep{yang2024gla, gu2023mamba, qin2024hgrn2}, where the delta rule moves the transition off the diagonal and test-time training off a closed affine form altogether, each paying for it in a costlier parallel form \citep{schlag2021fwp, yang2024deltanet, wang2025testtime}. That is the other recurrence class, and routed versions of it exist; the choice of Section~\ref{sec:intro} puts them outside this paper's scope, and Section~\ref{sec:reduction} states where the two classes part.
+
+The second means a realized kernel rather than a dense-mask simulation, and a proposal carrying neither leaves its contribution undetermined. Theory about the class stands outside this, capacity results holding on their own. This paper clears the second at $\Nst = 65{,}536$, and for the first it states the protocol that tests the map at controlled, reproducible addressing entropy, with the language-model scale that would settle it fully left to the sequel.
+
+\subsection{Cost: the quantization, the ledger's riders and the residue}
+\label{apd:costdev}
+
+The same measurement carries the other half, the candidate (owner, tile) pairs that hold nothing live for their owner and skip every step. A cost model prices the quantum, not the mean.
+
+Two consequences follow, and both invert the intuition that a sparse memory should touch as little as it can. The first is that support size is nearly free. A support larger than needed costs little once it has paid for its tiles. No cost argument then remains for a hard per-token budget. Product-key memories adopt top-$k$ for the compute it saves \citep{lample2019pkm}, where Raven adopts it to limit interference \citep{afzal2026raven}, and only the first motive is the one this arithmetic answers. Section~\ref{sec:allocation} can spend support freely and let the activation set its own boundary, which makes exact entmax affordable.
+
+What that gives is structural: an address whose contiguity a flat address of the same capacity would have to learn. Whether the router, the module that emits the per-level distributions, then places related tokens under one coarse digit depends on what it learns, which we leave unmeasured here. Hierarchy is a coherence prior in that sense, the cost-side counterpart of the addressing argument of Section~\ref{sec:capacity}.
+
+In effect, a head may provision far more features than the memory it ever occupies. Translation costs one table indirection per granule against the $16\dv$ state entries that granule holds, a part in a thousand at $\dv = 64$. The measured figure is. What decode walks and what a checkpoint serializes follow the same support, and the released kernel carries both.
+
+We price the comparison with softmax attention per pair and then count pairs, since attention's per-token cost grows through the sequence and any one token's price, the final token's above all, misstates the total. Attention pays $\dqk + \dv$ multiply-accumulates per query-key pair: one dot product for the score, one to accumulate the weighted value. That is $2\dv$ at the standard head shape $\dqk = \dv$, which the ledger below assumes; at $\dqk < \dv$ it pays less and the ledger under-claims. RoLA pays about $\dv$ per (token, leaf) pair, the value contraction alone, addressing having moved into the factorized router at $\Dlv$ multiplies per token.
+
+Decode returns the same answer, and a per-step advantage is easy to claim by accident. At step $t$ attention pays $2t\dv$ against a cache of size $t$, while RoLA pays $\Nst\dv$ at every step, because we size the state for the end of the sequence from the start. Attention is therefore cheaper below $t = \Nst/2$ and dearer above. Over $L$ steps the totals are $L^2\dv$ against $L\Nst\dv$. Decode is the triangle paid one row at a time, and no phase tilts the ledger.
+
+A bit of bookkeeping runs against a multiply-accumulate at a ratio near $10^{-4}$, which we have not measured and state only to an order of magnitude. The residue therefore stays invisible until a wiring touches fewer than $\Nst / 10^{4}$ features a token, so the slope-zero line of Figure~\ref{fig:surfaces}(b) is predicted to flatten onto a floor of that order rather than onto zero.
+
+The quantization cuts both ways, and no average shows it. A head addressing $\Nst = 65{,}536$ features leaves a candidate block of $64$ holding fewer live features than the quantum it is billed for, since the k-step count cannot fall below one wherever anything is live.
+
+The second consequence is that clustering, not sparsity, is the quantity worth optimizing. Write $\rho$ for the fraction of features a token touches. A tile is live if any of its $B_T$ tokens touches it, so the kernel pays for the tokens' combined footprint. That density is near $\min(1, B_T\rho)$ when the tokens touch unrelated features and near $\rho$ when they agree. At $\rho = 1/1024$ and $B_T = 32$ that is a factor of $32$ against a factor of $1024$.
+
+Provisioned capacity and resident memory come apart, which is the same argument on the storage side. The state is paged in software at a fixed granule of $16$ leaves, and a page is admitted from the realized write support the producer has already computed. Resident bytes therefore scale with what a sequence wrote rather than with the provisioned count. The feature count is an address space, and a model pays for the fraction of it that it inhabits, which under sparse writes is the small quantity.
+
+That size is the adversarial regime of Section~\ref{sec:corner}, sparse writes with dense reads, where the write router buys nothing the contract needs. Eq.~\eqref{eq:parity} therefore says we reach attention's arithmetic while paying to learn what attention gets free. The wiring that meets the equation is the sparse-write, dense-read one. Making both sides dense adds a second fold over the state and the intra-tile corrections that go with it, a bounded constant over attention and the price of a memory every token may rewrite rather than append one row to.
+
+What we add is where a routed head lands on it. Think of the state as a grid cut into blocks. A work item pairs an owner, that is, one block of $B_C$ leaf features, with a tile of $B_T$ tokens. The device stages or skips it whole, at a cost of $\lceil K / 16 \rceil$ k-steps, that is, one matrix-multiply step per $16$ of the $K$ features live in it.
+
+Nearby tokens choosing the same features is coherence, that is, tokens in one tile agreeing on where they write, and the factorized address supplies part of it by layout. The physical order of the features follows digit order. A coarse digit therefore selects a contiguous region, and every fine decision beneath it lands in tiles that region has already paid for.
+
+The affine recurrence makes one prediction about memory. Its backward pass reconstructs no history of the state, which Appendix~\ref{apd:proofs} proves from the detached clock, so what a step must retain per token stays flat in $L$. A pass that checkpoints the state at every chunk boundary retains a state per boundary and pays that growth. Training memory per token is predicted flat in $L$, not measured.
+
+\subsection{The presence-recall instrument: construction and columns}
+\label{apd:presence}
+
+The cue and the content are different tokens by construction, so a head that answers has to store $x$ where a later token pointing at $x$ will look. Eq.~\eqref{eq:agree} is then a property training has to find rather than one the cue supplies. Every position that carries an item carries a label, except the first of a sequence, whose prefix is empty and whose answer is constant. The two classes are planted in balance at each labeled position, so chance is one half and a threshold in $\Nst$ is sharp against it.
+
+The answer being one bit is what leaves the feature count alone in the measurement. A multi-query lookup returns a value of $\log_2 |V|$ bits, so its accuracy mixes addressing with retrieval and a partly resolved address still returns part of the answer, where presence recall asks only whether the target is there. The negatives supply separation from the other side. A position whose target has not occurred must answer no.
+
+A feature holding two items that a sequence realizes together then turns a present item into a false positive for the absent one, so the contract forces every such pair apart on the realized graph. The demand is that graph's chromatic number, a complete graph over the items a sequence draws puts the number at the item count, and the collapse threshold keeps the form Section~\ref{sec:sizing} gives it.
+
+The demand-$16$ ladder runs $\{16, 32, 64\}$, from the demand itself upward, since the implementation floors a routed head at $16$ features, so the crossing is measured at the higher demand and bounded at the lower. Either way the provisioning ratio $\alpha$ of Section~\ref{sec:sizing} runs through one against a demand that was measured. Softmax attention is the only other party, and it never appears on that axis, its state being a cache that grows with the context.
+
+Every cell here is a trained model, its router and per-level clock optimized end to end and not fixed by construction. We run no head-to-head against the routed family of Table~\ref{tab:family}, because there is no size both sides run at. The routed alternatives on the diagonal report $\Nst$ between $10^2$ and $10^3$, against the $10^5$ to $10^6$ this architecture targets. The two methods that do sit in our range, Sparse Delta Memory at $2.3 \times 10^5$ \citep{cabannes2026sdm} and FwPKM at $2.6 \times 10^5$ \citep{zhao2026fwpkm}, are built on the other recurrence, the delta rule for one and a state-dependent gradient step for the other.
+
+We enter attention twice. It runs first at a key width ample for every demand, which establishes that the cells are solvable at all. A routed failure at some $\Nst$ is then a statement about capacity, where an attention score far below saturation would say the construction is measuring difficulty and not demand. That calibration is the instrument's floor, and no routed column can supply it.
+
+It runs second as a second validation of the account, on the axis its own capacity law lives on. A head of key width $\dqk$ packs $\exp(c\,\dqk)$ addresses at a packing constant $c$ set by the interference one tolerates (Section~\ref{sec:capacity}), a reading concurrent work reaches through spherical codes above a Welch interference floor \citep{ghriss2026kata}. Its collapse threshold therefore moves with the logarithm of the demand where a routed one moves with the demand itself.
+
+Sweeping $\dqk$ over the same solved graphs makes $c$ a measurement of ours, and we label $c$ fitted wherever it appears. Three solved demands enter it, at $16$, $32$ and $64$, the middle one running attention alone since the routed law is read off the outer pair, so the slope is a fit through three points.
+
+Section~\ref{sec:wiring}'s law places the three: each is one schedule for a structurally guaranteed read-write intersection, and the second column of Table~\ref{tab:arms} is what each gives up to hold it. Untied sparsity, two independently solved sparse supports and the wiring that law excludes, gives up nothing and forfeits the guarantee. The three span the axis between coverage and agreement, at the envelopes Table~\ref{tab:wirings} lists, and running them on one set of graphs is how the grid spans it. The ablation measures which payment is cheapest on task quality, not which mechanism is better.
+
+A trained model enters the same figure as a marker. We read its measured $s$, $\gamma$ and $a$ off the trained router and place it on the surface, which locates that cell on the knob axes and prices nothing: a cost quoted for a cell is timed on the cell. What the sweep yields are its fitted slopes and the figures, properties of the sweep rather than of any point in it.
+
+The same generator carries contracts and graph families this paper leaves unrun, and each extends the instrument in one direction. Clustered, overlapping and reuse constructions move the demand against the item vocabulary, against the count a sequence writes and against a natural sharing distribution, where the presence contract holds the graph complete. A partial contract asks about part of the item set and moves the demand without changing one token of the distribution.
+
+A conjunctive contract asks whether every target of a token precedes it rather than whether one does, still answering in one bit. The demand grows toward the union of the targets, since a shared feature cannot tell one present target from two. Those are the sequel's instrument, and this paper's confirmation runs on the one contract that isolates the feature count.
+
+The three are configurations, and Table~\ref{tab:arms}'s second column leaves open how to read a gap on each. The dense-read column approximates nothing on either side, which is what makes it the reference. A gap on the level split reads as a spread write, through the block write of Section~\ref{sec:levelsides}, rather than as a support one side never got. A gap on the shared support is the error $\varepsilon$. That column's write purity at $\Nst = L$ holds where the cue carries the content itself and is at stake where the two diverge, which is the divergence $\pi$ puts under test in Section~\ref{sec:theorygrid}.
+
+A query re-presents the key its pair was stored under, so the read cue is the write content, and a head passes with one symmetric addressing map, never learning a correspondence between the two sides. That is also the regime in which shared-support routing holds Eq.~\eqref{eq:agree} structurally (Section~\ref{sec:wiring}), so the wiring whose exactness most needs testing is the one the task exempts.
+
+A grid that sweeps a quantity it cannot compute is sweeping a knob. Every segment therefore solves the demand of the graph it actually realized, a sample realizing a subgraph of what the construction describes. On the complete graphs this paper runs, the solver's lower and upper bounds meet, so each cell sits at a demand that is solved and not assumed.
+
+The contract is dense over what a sequence writes: every item position is a read, so evaluation is exhaustive and a measured threshold stays sharp against the demand. Appendix~\ref{apd:instrument} gives the planting that holds the chance line at one half and keeps any read from being served out of the residual stream.
+
+We run two conditions, complete graphs at demand $16$ and at demand $64$, over sequences the generator draws. Sequences run $64$ tokens at the lower demand and $256$ at the higher. A sequence draws half its condition's pool, $8$ items of the $16$ and $32$ of the $64$. The demand and the count a sequence writes therefore sit a factor of two apart in every cell. $\pi$ runs over the pool of its condition, inside a model vocabulary of $8{,}192$ tokens.
+
+We run four routed columns over the feature count $\Nst$ on each: the three wirings of Section~\ref{sec:wiring}, and a dense control at one level, which is linear attention at $\Nst$ features with no factorization to express. The demand-$64$ ladder runs $\Nst$ over $\{32, 64, 128\}$ and brackets its solved demand from below and from above.
+
+One more contrast runs at the lower demand, and it is about the clock rather than the feature count. The write-mass clock of Section~\ref{sec:decay} advances a feature in proportion to the mass it takes in, so a spread write ticks each of the features it touches a little. A clock that instead advanced every feature in the write's support by a fixed step would tick them all fully. The two coincide on an exact point write, that is, wherever a token writes to one feature and no more, so the sparse-write column is a control cell and the clocks can separate only where writes spread. We pair the two clocks over the three wirings and the same ladder in $\Nst$ at demand $16$, and read the decay-off column off the cells already described.
+
+The second question is what read sparsification costs and what it buys. The paper's sparse-regime claims rest on the answer: the kernel gains of Section~\ref{sec:cost} need a query to touch a small part of the state, and the default configuration reads densely. The three wirings of Section~\ref{sec:wiring} are sparse writes with dense reads, a level split, one level carrying the write and another the read, and shared-support routing. They are structural variants of one head, run at identical $\Nst$ and $L$, so a difference between them is the wiring.
+
+We sweep the wirings over three knobs, each a quantity the cost and the learning condition both depend on. The occupancy $s$ is the fraction of the state a sequence writes at all, in other words how much of the memory a sequence ever touches. The coherence $\gamma$ is the tile-level agreement among neighboring tokens' supports that Section~\ref{sec:cost} charges for. The alignment $a$ is the fraction of reads whose support meets the write that stored the target. Each wiring is a surface over those knobs.
+
+The touch exponents are the falsifiable part, since they are slopes and not constants. The envelope of Section~\ref{sec:wiring} is a ceiling on what one token may touch, where the exponent is how that ceiling grows in $\Nst$, so adaptivity moves the constant a confident cue realizes and not the rate. A measured slope tests the wiring even where no token pays its envelope.
+
+The grid reports accuracy, and Section~\ref{sec:capacity} makes claims about the assignment behind it, so we read that assignment off the same runs. After a cell trains, its final validation pass is replayed on the exact checkpoint over the exact evaluation inputs and through the same code path, with instrumentation recording the per-level distributions as they are produced. Every quantity below therefore comes from the forward passes that produced the reported accuracy rather than from probe inputs the model never saw. Nothing trains again.
+
+The account puts the loss on those edges rather than on the count of items a sequence writes. The third is agreement, whether the addresses the read and the write sides assign meet in the sense of Eq.~\eqref{eq:agree}, measured under $\pi$ as the address a token reads at against the address its target wrote at.
+
+We record three predictions here as well. The write-mass clock sits at its decay-off twin on both spreading wirings, and a column materially below that twin would say the clock erodes retention under spread writes. The fixed-step clock degrades with the width of the write support. It is worst on the level split, whose dense write level ticks that whole level at every step, and milder on shared-support routing, whose support spans two addresses. An ordering that does not track support width falsifies it. The control pair holds, and a split there is an instrument finding about the sparse-write column's realized support and not a result about clocks. The fixed-step clock is an instrument for this contrast alone: it runs on the training oracle, which is the engine every cell of the grid trains on and the only one that implements it.
+
+The negatives supply separation from the other side: a feature holding two items a sequence realizes together turns a present item into a false positive for the absent one, so the contract forces every such pair apart on the realized graph. The demand is that graph's chromatic number, and the collapse threshold keeps the form Section~\ref{sec:sizing} gives it.
+
+It runs second as a second validation of the account, on the axis its own capacity law lives on. A head of key width $\dqk$ packs $\exp(c\,\dqk)$ addresses at a packing constant $c$ set by the interference one tolerates (Section~\ref{sec:capacity}), so its collapse threshold moves with the logarithm of the demand where a routed one moves with the demand itself.
+
+Section~\ref{sec:sizing} leaves one route below the demand open, for contracts asking only for fixed mixtures of stored items, and a presence query falls outside that class, by the nonnegative rank argument stated there. What these cells measure is the chromatic number itself.
+
+We read three quantities, in the vocabulary of Section~\ref{sec:capacity}. The first is whether the realized coloring is proper, that is, whether items live at once take distinct features, which is the assignment the exact case rests on. The second is the mass sitting on edges whose endpoints share a feature, read against the accuracy of the cell it came from.
+
+Two questions follow from the theory, and this section answers both: whether the capacity account predicts where retrieval fails, and what each wiring costs a token. The grid that answers the first is also this paper's evidence that the head trains, and Section~\ref{sec:inspection} reads the assignment behind that grid off the same runs. Every number reported here is produced by the head of Section~\ref{sec:rola} on the semantics stated there. Where a measurement is still missing a placeholder names it, and the repository's \texttt{MANIFEST.md} lists the run that fills each one.
+
+The first question is whether the capacity account predicts where retrieval fails. Section~\ref{sec:sizing} makes that account a number. What a fixed-state head pays for is the demand, the chromatic number of the co-occurrence graph a distribution realizes, and not the count of items a sequence writes. Multi-query associative recall leaves that account untested \citep{arora2023zoology}, and the contract is what stops it.
+
+\subsection{The kernel-shape difference, read from both sides}
+\label{apd:kernelshape}
+
+Kernel shape is the third, and it is the one difference from softmax attention we claim survives a partition coarser than the data. The two concentrate differently on the same evidence, and the limit belongs to the factorized map rather than to slot memory. Appendix~\ref{sec:router} states the sharpening rates and works out both attributions. The abrupt failure of the first limit is that difference read from the other side, a continuous key geometry against discrete leaves, and the pooling of the second is that same difference again.
+
+% ------------------------------------------------------------
+% B. Limits of the cost evidence.
+%
+% RELOCATED from Sec. 6.2 by the claims ledger (R1): under the provenance
+% ruling every magnitude here is a \placeholder, so the body was printing a
+% \TODO banner, two paragraphs of caveat structure and two placeholder blocks
+% for E5 fine print of exactly the kind an appendix holds. The memory-bound
+% sentence and the artifact \TODO stayed in the body. \label{sec:costlimits} is
+% carried here unchanged so every cross-reference to the old subsection
+% survives; \label{apd:costlimits} is its appendix-register name.
+% ------------------------------------------------------------
+\section{Limits of the cost evidence}
+\label{sec:costlimits}
+\label{apd:costlimits}
+
+The planner selects gathering live columns before the matrix-multiply on routed-sparse cells and rejects it on dense ones. The sign reversal is the finding rather than a caveat on it. On the at-scale cell of Section~\ref{sec:cost}, gathering retires instructions with decay off and more with decay on, and paired interleaved timing puts the gathered kernel below its dense counterpart. On a saturated cell of the same topology the same mechanism adds instructions instead, so gathering serves routed sparsity and is not an unconditional optimization. \placeholder{Instructions retired by gathering at the at-scale cell with decay off and with decay on, the paired interleaved timing of the gathered kernel against the dense one, and the instruction cost of the same mechanism on the saturated cell; rental-class hardware, ratified protocol.}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{\textbf{The cost quanta and what isolates each}, per candidate (owner, tile) pair. Config: $\Nst = 65{,}536$ as two levels of width $256$, $\dv = 64$, $8$ heads, $B_T = 16$, $B_C = 64$ except where an isolating pair varies it. The middle column is structural, and every coefficient is isolated by the cell or cell pair in the last column, which varies one extent, rather than fitted. \TODO{Restore the work column, in warp instructions, from hardware instruction counters on rental-class hardware under the ratified protocol, decay as the range across which the selections are re-run.}}
+\label{tab:quanta}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Term & Scales with & Isolated by \\
+\midrule
+Gather, fixed part      & candidate tile          & the $B_C$ pair \\
+Gather, quantum part    & $\lceil B_C/16 \rceil$  & the $B_C$ pair \\
+Readout, fold, panels   & k-step                  & the at-scale cell \\
+Intra-level contraction & k-step                  & the write-$k{=}1$ pair \\
+Leaf mass decay         & k-step                  & the $B_C$ pair \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+What binds the cost model is the configuration choices it reproduces, its measured $(B_T, \text{gather})$ selections, rather than its absolute predictions, which we record rather than assert. One per-tile term decides part of that agreement while the kernel source refutes the work it names. Its attribution is therefore un-identified, and we do not re-fit its value to compensate. Removing it leaves every row under-predicted, the one-sided shape of a model pricing only the terms it measured, and decay is likewise overpriced on the one at-scale cell where the extents move. We record that direction rather than correcting it, since setting a second decay constant would spend the one cell that could then validate it. \placeholder{Selections reproduced of selections measured, how many of them the un-identified per-tile term decides, the one-sided residual once it is removed, and decay's residual factor at the at-scale cell; same protocol.}
+
+% ------------------------------------------------------------
+% C. Regeneration manifest -- SECTION CUT 2026-08-03 (accessibility pass,
+% style-survey REPORT.md section 3.2: "repos are ground truth").
+%
+% The 24-row work-order table, its two framing paragraphs and the
+% language-model tier paragraph (~1.3 printed pages) left the paper for
+% MANIFEST.md at the repository root, which was already the ground truth for
+% run counts, GPU-hour estimates and the local/rental split. What the paper
+% keeps is the reproducibility map itself: Sec. 7's opening states that a
+% placeholder names a measurement and that MANIFEST.md lists the run filling
+% it, which is what makes those placeholders honest. The 22
+% manifest call sites in the body were simplified in the same pass; every one
+% of them either named it as a costing pointer (cut) or as the home
+% of a run (now the repository pointer), and each sentence was re-read whole
+% after the reference came out.
+%
+% Also cut here in the same pass: the self-funded / 8 GB leash passage
+% (10:281), the fused-engine paragraph (10:339), the re-run-on-rental \TODO
+% self-note (10:199) and two of the three "carry no publishable provenance"
+% sentences (10:206, 10:283) -- the third survives, as one sentence, in
+% Sec. 8 and is the one entry in style_whitelist.json's process_passages
+% ledger. Quarry: this file at dd61cc6.
+% ------------------------------------------------------------

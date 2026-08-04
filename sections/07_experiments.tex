@@ -1,0 +1,293 @@
+% ============================================================
+% 7. Experiments
+%
+% SCOPE, v5 (USER-RATIFIED 2026-08-03): a theory paper with TWO empirical legs
+% and no others. THE RULING: v1's sole theory confirmation is the PRESENCE-
+% RECALL task (V3_CAPACITY_THEORY_NOTES_2026-07-29.md tail, 2026-08-03), and
+% the multi-family graph grid MOVES OUT of v1's protocol into the future-work
+% register at the end of 7.1. What the task repairs: MQAR's query re-presents
+% the key, so read cue = write content and a symmetric map passes without ever
+% learning a correspondence (also the regime where the shared solve gets
+% agreement structurally free). pi = random-once-frozen token -> token-it-reads
+% (pi(x) != x); label at t = whether pi(x_t) occurred before t. One bit, so no
+% value-retrieval confound; the false-positive constraint forces separation on
+% the realized union graph, so the demand stays the complete graph's chromatic
+% number and the collapse-threshold prediction is unchanged IN FORM.
+%   LEG 1 (Sec. 7.1) the presence-recall tier: complete graph at demands 16 and
+%     64, N-ladders bracketing each, the three RoLA wirings + the dense
+%     one-level control, and SOFTMAX ATTENTION twice, once as the instrument
+%     floor (capacity-adequate reference cells) and once as a SECOND VALIDATION
+%     on its own swept axis (d_qk against log2 of the SOLVED demand, where c is
+%     fitted; THREE demands 16/32/64, the middle attention-only, so the slope
+%     is a fit). FILLED 2026-08-03 from the BUILT instrument
+%     (rola_bench/mqar/experiments/presence_grid.yaml + workflows/presence-
+%     recall/notes.md): L = 64/256, s = K/2 items per sequence, vocab 8192,
+%     batch 64, seeds [0,1], 40ep x 20k, LR SWEPT PER COLUMN
+%     {3e-4, 1e-3, 3e-3} best-reported winner-re-run (the pinned 3e-3 is GONE
+%     everywhere; adjudicated internally, not paper content). 204 stage-1
+%     cells. The chi solver's certificate/stamps discipline survives verbatim.
+%   LEG 2 (Sec. 7.2 + Sec. 6) RoLA against FlashAttention: capacity-fair
+%     N = L, the cost surfaces, and the backward mode axis. Unchanged content.
+% CUT in this pass, and not to be restored from the quarry: all trained
+% GDN / GLA / vanilla-LA baseline cells; the old law-grid ladder cells; the
+% GDN Tier-1 manifest rows; the four-contender enumeration sentence. GDN et
+% al. keep their Sec. 2 / Sec. 3 taxonomy seats and appear in NO run arm.
+% The comparison thesis is linear attention reaching attention's recall at
+% much lower cost, so attention is the only comparison party in either leg.
+% v1 contains NO language modelling: LM at any scale is the sequel (Sec. 1),
+% and the grid's cells are trained models end-to-end, which is also this
+% paper's evidence that the head trains.
+%
+% VOCABULARY (style_whitelist.json): "arm(s)" and "clique" are CUT terms, so
+% the parties are columns / wirings and the demand's lower bound is a
+% pairwise-joined item set. Sec. 7 is on the quarantine whitelist for
+% "router"/"routing" (verified 2026-08-02).
+%
+% TWO RULES, no exceptions (carried from the audit):
+%   (1) every number reported here is produced by the head of Sec. 4 on the
+%       semantics stated there; nothing is forward-ported from an earlier
+%       architecture, and no such result appears in the paper at all;
+%   (2) every required measurement with no run behind it is a \placeholder;
+%       the run that fills it is listed in the repository's MANIFEST.md
+%       (the regeneration-manifest appendix was cut 2026-08-03, see
+%       10_appendix.tex's block C comment).
+% Consequence: this section contains NO measured number of its own.
+%
+% RELOCATED 2026-08-03: the trainability law, the excluded wiring, the three
+% purchases with their agreement/coverage classification, Eq. touchproduct and
+% the shared-solve exposure now live in ONE home, Sec. 4's \subsection{The
+% wiring family} (\label{sec:wiring}), which derives the wirings from the law
+% instead of presenting them as configurations. This section RE-CONTEXTUALIZES:
+% what each wiring's liability means for reading the grid, and the envelope-vs-
+% slopes reconciliation, which is protocol. No law sentence is stated twice.
+% The note below is retained as the law's provenance record.
+%
+% THE TOUCH-PRODUCT LAW (2026-08-02; SCOPED 2026-08-03 after a user
+% -caught overclaim): a guarantee that the two supports meet at level l for
+% arbitrary logits needs r_l + w_l > b_l, so the cheapest such guarantee per
+% level is one point mass against one dense side and r*w = prod_l b_l = N.
+% r*w = N is NOT a requirement of exact addressing: per level, exactness needs
+% either AGREEMENT (both sides pin the digit, 1 touch each, the cue must carry
+% it, Eq. agree) or COVERAGE (one side dense over b_l, agreement-free, b_l
+% touches). r*w = N is the ALL-COVERAGE corner, which is the structural-
+% guarantee family the three wirings inhabit and is exact however
+% underdetermined the cue; r*w < N means some levels ride on agreement, the
+% point corner r=w=1 being the identity-cue regime. PLACEMENT (user
+% correction, 2026-08-03): only TWO wirings are all-coverage, sparse-write/
+% dense-read and level-split (no level pinned by both sides). The union arm is
+% the DELIBERATE exception at the agreement end: both sides sparse, both pin,
+% O(1) a side, r*w << N, exactness riding on LEARNED agreement that the shared
+% solve makes cheap to learn by coupling the two producers through one support
+% (write routes content, read routes a cue, so it is learned, not structural
+% identity -- which is why the existing "point-mass write is not protected at
+% N = L" sentence for this arm is consistent and stays). The three TOGETHER
+% span the axis, which is part of why the grid runs all three on one graph set.
+% Do NOT call all three guarantee-family members. SECOND REFINEMENT (user,
+% 2026-08-03): the union arm has ONE addressing function shared by both sides,
+% so within a token the two supports are IDENTICAL BY CONSTRUCTION, not two
+% coordinated maps. Exactness is a CROSS-TIME question, f(cue) = f(content) for
+% the same f: under IDENTITY cues that is STRUCTURAL (same function, same
+% input), so the arm's guarantee is as strong as the covering arms' at O(1)
+% touches. Its exposure is CUE-CONTENT DIVERGENCE, where the burden is
+% CANONICALIZATION through the one map (Eq. agree, nontrivial correspondence),
+% NOT coordination between two producers. Do NOT write "learned agreement
+% between the sides". The N = L purity sentences in Sec. 4 and here are scoped
+% to match: protected under identity cues, at stake on divergent-cue
+% contracts. r and w are the wirings'
+% STRUCTURAL ENVELOPES, not per-token bills: entmax support is adaptive,
+% confident cues collapse toward the point corner, and the kernel bills
+% realized touches. App. A's "splitting the exact-addressing exponent" is
+% scoped to the intersection guarantee and stays as written. The three arms are
+% three points: (N,1), (sqrt N, sqrt N), and union OFF the hyperbola at O(1),
+% which it reaches by tying the two supports into one solve rather than by
+% covering. That is the SAME independence the coupling-independence law
+% charges it (cac1ac3), stated as arithmetic; the two paragraphs are the
+% qualitative and quantitative halves and must not restate each other.
+%
+% QUARRY, with the corrections that bind:
+%   - the law and the currency framing: findings doc deposit 2026-08-01. It is
+%     the COUPLING-INDEPENDENCE theorem and not a checklist of properties.
+%     DUPLICATION SWEEP (claims ledger, D5): the law was stated four times here
+%     (law, per-wiring schedule, learning condition, per-wiring mechanism) and
+%     is now stated ONCE, in the two surviving paragraphs (the law and the
+%     learning condition). The per-wiring schedule lives in tab:arms' second
+%     column, which already carried it verbatim. Quarry: this file at d146fdc.
+%     Two earlier framings are retracted and must not come back from the
+%     quarry: "pick two of {exact writes, sparse reads, coupling}" and "pick
+%     three of four". Level-split's writes are NOT corner-perfect; the f306416
+%     wording was retracted in db86c25 and must not be resurrected.
+%   - learning condition (entmax's support-restricted Jacobian) and the
+%     structural intersection supp(w_A) x supp(r_B): same deposit.
+%   - duty-assignment family: App. A, subordinate to the ablation, stamped
+%     deferred, WITH the framing guard (the natural configuration is the only
+%     member that writes injectively at N = L).
+%
+% NO WIRING RANKING (user-ratified 2026-08-02, audit C-39/C-40): the paper
+% pre-registers NOTHING about which wiring wins. The "we predict a level split
+% at least matches a shared support" sentence and App. A's Conjecture 1
+% (level-split generality) are DELETED and must not come back from the quarry
+% (both lived here / in 10_appendix.tex at 1544452). The three wirings are
+% configurations presented on their own dynamics, and the grid reports what it
+% reports.
+%
+% CUT with the scope v5 ruling, and retained ONLY in the future-work paragraph
+% at the end of 7.1: the four-construction table (clustered / lifetimes /
+% reuse), the contract-reduction axis, the mixed-lifetimes decay condition, and
+% the predictions built on them (old 1, 2, 4, 6). They are the sequel's
+% instrument. The conjunctive (ALL-reads) contract joins them as the multi-read
+% that prices d_v. Do NOT restore any of them as a v1 protocol claim. Quarry:
+% this file at ff7a6a0.
+%
+% 7.3 ROUTING INSPECTION (user-ratified, strict condition): analysis of the
+% SAME runs only. The final validation pass is REPLAYED (exact checkpoint,
+% exact evaluation inputs, same code path) under instrumentation; never probe
+% inputs the model did not see, never a new training run. Measured in Sec. 5's
+% vocabulary: the realized coloring's properness, the mass on edges whose
+% endpoints share a feature (against accuracy), and read/write agreement under
+% pi (the read address against the target's write address). Manifest carries it as a zero-cost analysis row.
+% ============================================================
+\section{Experiments}
+\label{sec:experiments}
+
+Two questions follow from the theory, and this section answers both: whether the capacity account predicts where retrieval fails, and what each wiring costs a token. The grid that answers the first is also this paper's evidence that the head trains. Every number reported here is produced by the head of Section~\ref{sec:rola} on the semantics stated there, and where a measurement is still missing a placeholder names it, the repository's \texttt{MANIFEST.md} listing the run that fills each one.
+
+\subsection{The capacity theory's instrument}
+\label{sec:theorygrid}
+
+The first question is whether the capacity account predicts where retrieval fails. Section~\ref{sec:sizing} makes that account a number, the demand, which is the chromatic number of the co-occurrence graph a distribution realizes and not the count of items a sequence writes. Multi-query associative recall leaves that account untested \citep{arora2023zoology}, and the contract is what stops it (Appendix~\ref{apd:presence}).
+
+A query re-presents the key its pair was stored under, so the read cue is the write content, and a head passes with one symmetric addressing map, never learning a correspondence between the two sides. That is also the regime in which shared-support routing holds Eq.~\eqref{eq:agree} structurally (Section~\ref{sec:wiring}), so the wiring whose exactness most needs testing is the one the task exempts.
+
+Presence recall is the repair, and it is multi-query associative recall with two repairs made to it: the cue is decoupled from the content by a frozen map, and the answer is one bit. We draw a map $\pi$ once at random, taking every token of the vocabulary to a different token, $\pi(x) \neq x$, and freeze it for the life of a condition. A sequence is a string of tokens, and the supervised output at position $t$ is one bit, whether $\pi(x_t)$ occurred anywhere before $t$. For example, where $\pi$ sends \emph{cat} to \emph{dog}, a position holding \emph{cat} answers yes if and only if \emph{dog} came earlier in the sequence. The task sits in the synthetic-recall lineage that runs from associative retrieval \citep{ba2016fastweights} through induction heads \citep{olsson2022induction} to the multi-query grids and their state lower bound \citep{arora2023zoology, arora2024based, jelassi2024copying}. Beside it stand the formal-language and long-context suites, which probe other axes \citep{deletang2023chomsky, liu2023flipflop, hsieh2024ruler}.
+
+Each repair has a precedent, and neither precedent composes the two. A one-bit membership answer is what meta-learned Neural Bloom Filters return \citep{rae2019bloom}. There the probe is the stored item itself, so nothing asks a head to learn a correspondence between two sides. Indirection is what Pointer Value Retrieval isolates \citep{zhang2021pvr}. Its pointer is positional, supplied inside the instance under a rule the model is told, and its output is a value. Ours is a token-to-token bijection frozen across the dataset that the model has to learn in weights, and pointer chasing has since been studied for the depth it costs \citep{sanford2024khop}. A frozen dictionary learned in weights is MAD's memorization task \citep{poli2024mad}, where it stands alone and never meets an in-context query. Composing a weights-resident map with an in-context prefix question is what puts address agreement, Eq.~\eqref{eq:agree}, under measurement.
+
+The cue and the content are different tokens by construction, so a head that answers has to store $x$ where a later token pointing at $x$ will look. That is, Eq.~\eqref{eq:agree} becomes a property training has to find rather than one the cue supplies (Appendix~\ref{apd:presence}).
+
+The answer being one bit is what leaves the feature count alone in the measurement, a multi-query lookup mixing addressing with retrieval where presence recall asks only whether the target is there (Appendix~\ref{apd:presence}).
+
+The negatives supply separation from the other side, so the contract forces every pair of items a sequence realizes together onto distinct features. The demand is that graph's chromatic number, and the collapse threshold keeps the form Section~\ref{sec:sizing} gives it.
+
+A grid that sweeps a quantity it cannot compute is sweeping a knob, so every segment solves the demand of the graph it actually realized and each cell sits at a demand that is solved and not assumed (Appendix~\ref{apd:presence}).
+
+
+
+We run two conditions, complete graphs at demand $16$ and at demand $64$, at sequence lengths $64$ and $256$. Each sequence draws half its condition's pool, so the demand and the count a sequence writes sit a factor of two apart in every cell.
+
+We run four routed columns over the feature count $\Nst$ on each, the three wirings of Section~\ref{sec:wiring} and a dense control at one level, with softmax attention the only other party and never on that axis (Appendix~\ref{apd:presence}).
+
+The demand-$16$ ladder runs from the demand itself upward, so the crossing is measured at the higher demand and bounded at the lower. Either way the provisioning ratio $\alpha$ of Section~\ref{sec:sizing} runs through one against a demand that was measured (Appendix~\ref{apd:presence}).
+
+Every cell here is a trained model, its router and per-level clock optimized end to end and not fixed by construction. We run no head-to-head against the routed family of Table~\ref{tab:family}, because there is no size both sides run at (Appendix~\ref{apd:presence}).
+
+We enter attention twice. It runs first at a key width ample for every demand, which is the instrument floor: it establishes that the cells are solvable at all, and no routed column can supply it (Appendix~\ref{apd:presence}).
+
+It runs second as a second validation, on the axis its own capacity law lives on. A head of key width $\dqk$ packs $\exp(c\,\dqk)$ addresses at a packing constant $c$ (Section~\ref{sec:capacity}), so its threshold moves with the logarithm of the demand where a routed one moves with the demand itself.
+
+Sweeping $\dqk$ over the same solved graphs makes $c$ a measurement of ours, and we label $c$ fitted wherever it appears. Three solved demands enter it, the middle one running attention alone, so the slope is a fit through three points (Appendix~\ref{apd:presence}).
+
+We record what the account predicts before the runs, each prediction with what would falsify it.
+\begin{enumerate}\setlength{\itemsep}{1pt}\setlength{\parskip}{0pt}
+
+\item A ratio, not a rung. Demand $64$ needs four times the $\Nst$ that demand $16$ needs, at the same shape of curve. Each condition's threshold sits at its own solved demand rather than at the count of items a sequence draws, which sits a factor of two below it in every condition and which the ladders resolve. A saturation point that stays put as the solved demand moves falsifies it.
+
+\item Attention's own law. Its threshold in $\dqk$ is linear in the base-two logarithm of the demand at positive slope $1/c$, over solved demands $16$, $32$ and $64$. A threshold flat in that logarithm falsifies it, and so does one linear in the demand itself, which would collapse the two axes onto one.
+
+\item The cue map is a storage cost for one wiring only. The covering wirings supply every level dense from one side and ask nothing of the cue there, so a divergent cue leaves their thresholds where the demand puts them and moves the training it takes to reach them. Shared-support routing produces one support per token for both sides, and under $\pi$ that support has to carry the union $\{f(x_t), f(\pi(x_t))\}$, its own write address together with the address its target wrote at. Section~\ref{sec:wiring} scopes that as canonicalization through the one map. We predict its threshold sits at or above the covering wirings' at both demands, and that it is the column a longer schedule moves. A threshold equal to theirs at both demands falsifies it, and would say the exactness never rested on the cue carrying the content.
+\end{enumerate}
+
+One more contrast runs at the lower demand, about the clock rather than the feature count. The write-mass clock of Section~\ref{sec:decay} advances a feature in proportion to the mass it takes in; a clock advancing every feature in the write's support by a fixed step would tick them all fully. The two coincide on an exact point write, that is, wherever a token writes to one feature and no more, so the sparse-write column is a control cell and the clocks separate only where writes spread (Appendix~\ref{apd:presence}).
+
+We record three predictions here as well, each with its falsifier (Appendix~\ref{apd:presence}). The write-mass clock sits at its decay-off twin on both spreading wirings, the fixed-step clock degrades with the width of the write support, and the point-write control pair holds. The fixed-step clock is an instrument for this contrast alone, and it runs on the training oracle, which is the engine every cell of the grid trains on and the only one that implements it.
+
+Cells are small, since the axis is addressing and cheap cells buy breadth. Table~\ref{tab:recipe} in Appendix~\ref{apd:instrument} is the configuration, held identical across every column.
+
+We size the conditions, their ladders in $\Nst$ and the attention axes as $204$ cells at the first stage, the rate sweep tripling every column, and the clock contrast adds $108$ more. Every panel below is a placeholder until that tier runs.
+
+\placeholder{Accuracy against $\Nst$ for the three wirings and the dense control, one panel per demand, plotted against each cell's solved demand, with the attention reference cells marking the instrument floor.}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[t]{0.48\linewidth}
+\centering\footnotesize
+\fbox{\begin{minipage}[t][1.6cm][c]{0.90\linewidth}\centering
+\placeholder{(a) Collapse threshold in $\Nst$ against solved demand for the four routed columns, and attention's threshold in $\dqk$ against $\log_2$ of the same demands, with $c$ fitted.}
+\end{minipage}}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\centering\footnotesize
+\fbox{\begin{minipage}[t][1.6cm][c]{0.90\linewidth}\centering
+\placeholder{(b) Latency against $\dqk$ for softmax attention, with the RoLA latency points and the $\Nst = L$ parity cell.}
+\end{minipage}}
+\end{minipage}
+\caption{\textbf{The two capacity axes, and what they cost.} Panel (a) is the exhibit both legs of the grid build: a routed threshold predicted linear in the demand, and attention's predicted linear in its logarithm, over one set of graphs whose demands the solver certified. It is read on the falsification list above, and its legend labels $c$ fitted. Panel (b) prices the same addressing, $\dqk$ for a monolithic kernel and $\Nst$ at router width $\Slv$ for a routed one. Monolithic kernels climb with the $\dqk \dv$ they touch per token and stop where standard kernels no longer exist, the infeasible region marked rather than omitted. Attention is flat in $\dqk$ but pinned at its $O(L^2)$ floor. What panel (b) is built to show is how little the RoLA curve climbs across that axis, measured to $\Nst = 65{,}536$ and anchored at Eq.~\eqref{eq:parity}'s parity point, with $\Nst = 10^6$ scheduled as a further cell \TODO{pending: the $\Nst = 10^{6}$ performance cell}. Points carry regime labels and paired timings, and no curve extends past them.}
+\label{fig:axis}
+\end{figure}
+
+The same generator carries contracts and graph families this paper leaves unrun, each extending the instrument in one direction, and Appendix~\ref{apd:presence} lists them. This paper's confirmation runs on the one contract that isolates the feature count.
+
+
+\subsection{Cost surfaces for the three wirings}
+\label{sec:sparsify}
+
+The second question is what read sparsification costs and what it buys. The kernel gains of Section~\ref{sec:cost} need a query to touch a small part of the state, where the default configuration reads densely. The three wirings run at identical $\Nst$ and $L$, so a difference between them is the wiring.
+
+We sweep the wirings over three knobs the cost and the learning condition both depend on. They are the occupancy $s$, in other words how much of the memory a sequence ever touches, the coherence $\gamma$ of Section~\ref{sec:cost}, and the alignment $a$, the fraction of reads whose support meets the write that stored the target.
+
+Section~\ref{sec:wiring}'s law places the three: each is one schedule for a structurally guaranteed read-write intersection, and the second column of Table~\ref{tab:arms} is what each gives up to hold it. The ablation measures which payment is cheapest on task quality, not which mechanism is better.
+
+The touch exponents are the falsifiable part, since they are slopes and not constants. The envelope of Section~\ref{sec:wiring} is a ceiling on what one token may touch, so adaptivity moves the constant a confident cue realizes and not the rate.
+
+On log axes against $\Nst$ at fixed $L$, the three wirings predict slopes $1$, $1/2$ and $0$, and Figure~\ref{fig:surfaces}(b) is that exhibit. Where the wirings actually cross in wall-clock time is a separate measurement on the same cells, the constants being tile quanta rather than touch counts (Section~\ref{sec:cost}). We measure the crossovers.
+
+A trained model enters the same figure as a marker, at its measured $s$, $\gamma$ and $a$. That locates the cell on the knob axes and prices nothing, since a cost quoted for a cell is timed on the cell.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[t]{0.48\linewidth}
+\centering\footnotesize
+\fbox{\begin{minipage}[t][1.6cm][c]{0.90\linewidth}\centering
+\placeholder{(a) Quality surfaces for the three wirings at identical $\Nst$ and $L$ over the occupancy, coherence and alignment axes, with the trained cells' measured statistics marked.}
+\end{minipage}}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\centering\footnotesize
+\fbox{\begin{minipage}[t][1.6cm][c]{0.90\linewidth}\centering
+\placeholder{(b) Touched features per token and measured latency against $\Nst$ at fixed $L$, log-log, one line per wiring.}
+\end{minipage}}
+\end{minipage}
+\caption{\textbf{The three wirings as surfaces.} Panel (a) sweeps the three knobs $s$, $\gamma$ and $a$ above, with $\Nst$ and $L$ held identical across wirings, so a gap between surfaces is the wiring and nothing else; trained cells appear as markers at their measured $(s,\gamma,a)$, which locates them on the axes and prices them nowhere. Panel (b) is the falsifiable exhibit of Eq.~\eqref{eq:touchproduct}: slopes $1$ and $1/2$ for dense reads and the level split, with the shared support's slope $0$ placed relative to the hyperbola rather than on it, and the wall-clock crossovers measured rather than inferred, since the constants are the tile quanta of Table~\ref{tab:quanta}.}
+\label{fig:surfaces}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\caption{\textbf{Read sparsification, three wirings} at matched addressing entropy against the dense-read reference. Each wiring is one schedule under the law of Section~\ref{sec:wiring}, placed relative to Eq.~\eqref{eq:touchproduct}, with $\varepsilon$ the price of the shared support defined in Section~\ref{sec:union}. All three wirings are coupled. Every cell regenerates on current semantics at two or three grid points and one at-scale anchor, as deltas with their spread, paired with the kernel cells whose gains the cost buys.}
+\label{tab:arms}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Wiring & Independence given up, and its form & Touches $(r,w)$ & Quality vs.\ reference \\
+\midrule
+Sparse write, dense read & the read's, outright (the parity wiring) & $(\Nst, 1)$ & reference \\
+Shared-support routing   & part of both: the shared projection  & off, $O(1)$ & \placeholder{$\varepsilon$: shared-support vs.\ dense-read rows} \\
+Level split              & the write's placement at one level   & $(\sqrt{\Nst}, \sqrt{\Nst})$ & \placeholder{level-split vs.\ dense-read rows} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The three are configurations, and Table~\ref{tab:arms}'s second column leaves open how to read a gap on each, which Appendix~\ref{apd:presence} supplies. The dense-read column approximates nothing on either side, which is what makes it the reference.
+
+Every cell of Table~\ref{tab:arms} runs the three at identical $\Nst$ and $L$ against the dense-read reference, and reports each wiring's quality where the grid places it.
+
+\subsection{Routing inspection}
+\label{sec:inspection}
+
+The grid reports accuracy, and Section~\ref{sec:capacity} makes claims about the assignment behind it, so we read that assignment off the same runs. After a cell trains, its final validation pass is replayed on the exact checkpoint over the exact evaluation inputs and through the same code path, under instrumentation. Every quantity below therefore comes from the forward passes that produced the reported accuracy rather than from probe inputs the model never saw. Nothing trains again.
+
+We read three quantities off those replays, in the vocabulary of Section~\ref{sec:capacity}. They are whether the realized coloring is proper, the mass on edges whose endpoints share a feature, and read/write agreement under $\pi$ in the sense of Eq.~\eqref{eq:agree}.
+
+
+\placeholder{Per condition and $\Nst$: the realized coloring's properness, the mass on edges sharing a feature against that cell's accuracy, and read/write agreement under $\pi$.}
+

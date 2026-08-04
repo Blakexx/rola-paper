@@ -1,0 +1,30 @@
+% ============================================================
+% 2. Bounded-state memories
+%
+% Budget 0.45 pp (0.75 in the structure, trimmed by the compensating cut
+% booked in FILL 3: Sec. 3 as landed already carries the update-rule split in
+% its non-reducing-wing paragraph, so the update-rule axis here is one
+% paragraph of cost and no taxonomy).
+%
+% DUPLICATION SWEEP (claims ledger, D1): the update-rule walk was cut to two
+% sentences (the axis exists; a sharper write costs parallelism). Sec. 3's P8
+% ladder is the survivor and owns the classification, which is what the
+% no-taxonomy-here note below always asked for.
+%
+% Owns nothing, and no displays. None of Sec. 3's taxonomy appears here: the
+% split between update rules that reduce and update rules that do not belongs
+% to Prop. 1 and is stated there, after the theorem earns it. What this
+% section owes is the vocabulary Sec. 3 then uses without defining: linear
+% attention's state, the feature dimension as its capacity, the recall gap
+% MQAR measures, and the update-rule axis read as a cost ledger.
+% ============================================================
+\section{Bounded-state memories}
+\label{sec:background}
+
+Softmax attention \citep{vaswani2017} and linear attention are two instances of one attention form, an output built by contracting a query against per-token entries whose keys are fixed when written. The kernel reading that groups the two is \citet{tsai2019}'s, and the condition on keys is ours. The name is also used loosely, as an umbrella for the linear-time recurrent family at large, the delta rule and its gated variants included \citep{yang2024fla}. We use it in the strict sense of \citet{katharopoulos2020} throughout, under which the delta rule and its variants fall outside the form, their updates reading as fast weights \citep{schlag2021fwp}. Those authors show the two readings to be formally equivalent, so the boundary is one of scope alone.
+
+Linear attention removes attention's pairwise score. A feature map $\phi$ applied to queries and keys alike writes the similarity as an inner product $\phi(q_t)^\top \phi(k_j)$, so the sum over earlier tokens folds into a running state $M_t = \sum_{j \le t} \phi(k_j) v_j^\top$ \citep{katharopoulos2020}. That state is a matrix of fixed shape, set by the feature dimension $\dqk$ and the width of a value. A read contracts it once against $\phi(q_t)$. Per-token compute and stored state then stop growing with the context.
+
+The feature dimension is also what bounds recall. A stored value survives retrieval only while the feature vector that addressed it stays separable from the rest, so $\dqk$ and not the token count sets how many key-value pairs the state holds at once. Multi-query associative recall makes the gap measurable \citep{arora2023zoology}. A sequence presents many key-value pairs and then queries a subset of the keys. Accuracy falls as the pair count approaches what the feature dimension can separate, where softmax attention holds accuracy by keeping a separate entry per token.
+
+Much of the line since has varied the update rule, and that axis reads as a ledger of what a write may depend on (Appendix~\ref{apd:ladder}).

@@ -1,0 +1,37 @@
+% ============================================================
+% 8. Limitations
+%
+% Budget 0.5 pp. No displays.
+%
+% Three registers, kept apart: unmeasured (a run exists that would settle it,
+% and App. B prices it), structural (a property of the design that no run
+% removes), deferred (scoped out of this paper). The working-set hypothesis
+% paragraph was CUT in the claims-ledger orphan sweep (ORPHAN 2): a hypothesis
+% about a future architecture's behaviour, serving no claim in the ratified set
+% and consumed by no section. Quarry: this file at d146fdc.
+%
+% Nothing in this section restates Sec. 7's placeholders as results, and
+% nothing here is a new claim: the structural items are Sec. 5's and App. A's,
+% cited. The kernel-shape limit is the ONE surviving difference from softmax
+% under the user ruling of 2026-08-03, which AMENDS arch 865-876: item (a),
+% intra-slot discrimination, is retired as capacity-dependent (attention past
+% its own addressing capacity blends indistinguishable keys too, and its
+% write-time keys are equally unseparable later), leaving item (b), kernel
+% shape, scoped to the factorized map. The graded-vs-quantized failure profile
+% is that difference's read-side corollary, not a second resource.
+% App. A sec:router states it and Sec. 5 points there.
+% ============================================================
+\section{Limitations}
+\label{sec:limitations}
+
+What this paper owes first is measurement. The theory grid of Section~\ref{sec:theorygrid}, the wiring surfaces of Section~\ref{sec:sparsify} and the kernel constants of Table~\ref{tab:quanta} stand here as placeholders. The counts behind those constants belong to one machine and one toolchain, so they carry no publishable provenance and are owed again on the kernel generation a reader can download. The capacity-fair comparison with softmax attention is the one settled without a run, arithmetically at $\Nst = L$ by Eq.~\eqref{eq:parity}, under the head shape and the exclusions stated with it.
+
+Four limits are structural. RoLA folds identity into the address when it writes, so a read takes whatever its feature holds at full magnitude when another symbol put it there. Its normalized readout signals that substitution no more than a similarity readout signals its own, and what is ours is that the failure arrives abruptly rather than by degrees (Section~\ref{sec:sizing}).
+
+A later read also cannot pull symbols apart once they share a feature. What keeps that pooling a form of generalization is the sizing argument and the sharing-safety condition of Section~\ref{sec:corner}, properties of the contract a task imposes rather than guarantees the head supplies.
+
+Kernel shape is the third, and it is the one difference from softmax attention we claim survives a partition coarser than the data: the limit belongs to the factorized map rather than to slot memory. Appendix~\ref{sec:router} states the sharpening rates and works out both attributions, and Appendix~\ref{apd:kernelshape} reads the same difference from the other two limits' side.
+
+Residency is the fourth limit. The paging of Section~\ref{sec:cost} holds resident bytes proportional to what a sequence wrote, so a map that writes densely inhabits the whole address space and pays for all of it. A limit on resident pages refuses the write outright, where a softer failure would degrade quietly.
+
+Two directions stay out of scope, and this paper spends none of its evidence on either. A feature map trained under a per-token touch budget, with losses rewarding coherent supports, would move where the read cost sits. The intra-RoLA axes are the other: level configurations beyond the three of Section~\ref{sec:sparsify}, read and write tying, and the map-style variants, which this paper defers.
